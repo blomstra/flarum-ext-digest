@@ -1,0 +1,41 @@
+{
+    "name": "blomstra/digest",
+    "description": "Email digests for your forum users",
+    "keywords": [
+        "flarum"
+    ],
+    "type": "flarum-extension",
+    "license": "MIT",
+    "require": {
+        "flarum/core": "^1.2.0"
+    },
+    "support": {
+        "email": "helpdesk@blomstra.net",
+        "forum": "https://blomstra.community/t/ext-digest",
+        "source": "https://github.com/blomstra/flarum-ext-digest"
+    },
+    "website": "https://blomstra.community",
+    "authors": [
+        {
+            "name": "Team Blomstra",
+            "email": "development@blomstra.net",
+            "role": "Developer"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "Blomstra\\Digest\\": "src/"
+        }
+    },
+    "extra": {
+        "flarum-extension": {
+            "title": "Digest",
+            "category": "feature",
+            "icon": {
+                "name": "fas fa-book",
+                "backgroundColor": "#EBF1FD",
+                "color": "#3a98d0"
+            }
+        }
+    }
+}
