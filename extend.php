@@ -11,7 +11,11 @@
 
 namespace Blomstra\Digest;
 
+use Flarum\Api\Serializer\CurrentUserSerializer;
 use Flarum\Extend;
+use Flarum\User\Event\Saving;
+use Flarum\User\User;
+use Illuminate\Console\Scheduling\Event;
 
 return [
     (new Extend\Frontend('forum'))
@@ -23,4 +27,27 @@ return [
         ->css(__DIR__.'/less/admin.less'),
 
     new Extend\Locales(__DIR__.'/locale'),
+
+    (new Extend\View())
+        ->namespace('blomstra-digest', __DIR__.'/views'),
+
+    (new Extend\Event())
+        ->listen(Saving::class, Listener\SaveUser::class),
+
+    (new Extend\ApiSerializer(CurrentUserSerializer::class))
+        ->attribute('digestFrequency', function ($serializer, User $user) {
+            return $user->digest_frequency;
+        }),
+
+    (new Extend\Notification())
+        ->driver('email', Notification\EmailDigestNotificationDriver::class),
+
+    (new Extend\Console())
+        ->command(Console\SendDigestCommand::class)
+        ->schedule('digest:send daily', function(Event $event) {
+            $event->daily();
+        })
+        ->schedule('digest:send weekly', function(Event $event) {
+            $event->weekly();
+        }),
 ];
