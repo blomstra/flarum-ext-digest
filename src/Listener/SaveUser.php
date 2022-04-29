@@ -1,5 +1,14 @@
 <?php
 
+/*
+ * This file is part of blomstra/digest.
+ *
+ * Copyright (c) 2022 Team Blomstra.
+ *
+ * For the full copyright and license information, please view the LICENSE.md
+ * file that was distributed with this source code.
+ */
+
 namespace Blomstra\Digest\Listener;
 
 use Blomstra\Digest\Mail\SendDigestToUser;
@@ -21,7 +30,7 @@ class SaveUser
 
     public function handle(Saving $event)
     {
-        $attributes = (array)Arr::get($event->data, 'attributes');
+        $attributes = (array) Arr::get($event->data, 'attributes');
 
         if (!Arr::exists($attributes, 'digestFrequency')) {
             return;
@@ -40,7 +49,7 @@ class SaveUser
         }
 
         $this->validation->make([
-            'frequency' => $frequency
+            'frequency' => $frequency,
         ], [
             'frequency' => 'nullable|in:daily,weekly',
         ])->validate();

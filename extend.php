@@ -44,10 +44,10 @@ return [
 
     (new Extend\Console())
         ->command(Console\SendDigestCommand::class)
-        ->schedule('digest:send daily', function(Event $event) {
+        ->schedule('digest:send daily', function (Event $event) {
             $event->daily();
         })
-        ->schedule('digest:send weekly', function(Event $event) {
+        ->schedule('digest:send weekly', function (Event $event) {
             $event->weekly();
         }),
 ];
