@@ -77,7 +77,7 @@ class SendDigestToUser extends AbstractJob
 
             if ($model instanceof Discussion) {
                 $discussion = $model;
-            } else if ($model instanceof Post) {
+            } elseif ($model instanceof Post) {
                 $discussion = $model->discussion;
             }
 
@@ -97,7 +97,7 @@ class SendDigestToUser extends AbstractJob
             ],
             [
                 'groupedNotifications' => $discussions,
-                'user' => $this->user,
+                'user'                 => $this->user,
             ],
             function (Message $message) use ($translator) {
                 $message->to($this->user->email, $this->user->display_name)

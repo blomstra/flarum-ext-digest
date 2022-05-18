@@ -57,7 +57,7 @@ class Notification
     }
 
     /**
-     * HTML output for that notification
+     * HTML output for that notification.
      */
     public function render(User $user): string
     {
@@ -65,7 +65,7 @@ class Notification
 
         $html = resolve(Factory::class)->make($viewName, [
             'blueprint' => $this->blueprint,
-            'user' => $user,
+            'user'      => $user,
         ])->render();
 
         // Remove greeting line
