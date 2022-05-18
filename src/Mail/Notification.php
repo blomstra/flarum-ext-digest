@@ -49,11 +49,28 @@ class Notification
         $this->date = $date;
     }
 
-    protected function viewName(): string
+    /**
+     * Returns the view to use as an array where [0] is text or html and [1] is the view name
+     */
+    protected function viewName(): array
     {
-        $originalViewName = Arr::get($this->blueprint->getEmailView(), 'text');
+        foreach (['html', 'text'] as $mode) {
+            $originalViewName = Arr::get($this->blueprint->getEmailView(), $mode);
 
-        return Arr::get(self::VIEW_OVERRIDES, $originalViewName, $originalViewName);
+            if (!$originalViewName) {
+                continue;
+            }
+
+            $override = Arr::get(self::VIEW_OVERRIDES, $originalViewName);
+
+            if ($override) {
+                return ['html', $override];
+            }
+
+            return [$mode, $originalViewName];
+        }
+
+        throw new \Exception('Could not find an email view for ' . get_class($this->blueprint));
     }
 
     /**
@@ -63,13 +80,18 @@ class Notification
     {
         $viewName = $this->viewName();
 
-        $html = resolve(Factory::class)->make($viewName, [
+        $html = resolve(Factory::class)->make($viewName[1], [
             'blueprint' => $this->blueprint,
             'user'      => $user,
         ])->render();
 
+        // If an original text view is used verbatim, we must escape the HTML to prevent any HTML injection
+        if ($viewName[0] === 'text') {
+            $html = e($html);
+        }
+
         // Remove greeting line
-        if (in_array($viewName, self::VIEWS_WITH_GREETINGS)) {
+        if (in_array($viewName[1], self::VIEWS_WITH_GREETINGS)) {
             // Remove first 2 lines of string
             $html = explode("\n", $html, 3)[2] ?? '';
         }
