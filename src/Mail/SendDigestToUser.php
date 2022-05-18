@@ -13,11 +13,16 @@ namespace Blomstra\Digest\Mail;
 
 use Blomstra\Digest\QueuedBlueprint;
 use Carbon\Carbon;
+use Flarum\Discussion\Discussion;
+use Flarum\Notification\Blueprint\BlueprintInterface;
+use Flarum\Post\Post;
 use Flarum\Queue\AbstractJob;
 use Flarum\User\User;
 use Illuminate\Contracts\Mail\Mailer;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Mail\Message;
+use Illuminate\Support\Arr;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
 class SendDigestToUser extends AbstractJob
@@ -49,19 +54,54 @@ class SendDigestToUser extends AbstractJob
             return;
         }
 
+        $discussions = [];
+
+        foreach ($queuedBlueprints as $queuedBlueprint) {
+            /**
+             * @var BlueprintInterface $blueprint
+             */
+            $blueprint = unserialize($queuedBlueprint->blueprint);
+
+            $model = $blueprint->getSubject();
+
+            try {
+                // Retrieve an updated version of the model
+                // This allows us to ignore notifications that might be for deleted models
+                // And avoids any error when trying to retrieve relationships off that model later
+                $model->refresh();
+            } catch (ModelNotFoundException $exception) {
+                continue;
+            }
+
+            $discussion = null;
+
+            if ($model instanceof Discussion) {
+                $discussion = $model;
+            } else if ($model instanceof Post) {
+                $discussion = $model->discussion;
+            }
+
+            $discussionId = $discussion ? $discussion->id : 0;
+
+            if (!Arr::exists($discussions, $discussionId)) {
+                // TODO: place "other" key at the end of the array
+                $discussions[$discussionId] = new Group($discussion);
+            }
+
+            $discussions[$discussionId]->notifications[] = new Notification($blueprint, $queuedBlueprint->date);
+        }
+
         $mailer->send(
             [
-                'text' => 'blomstra-digest::emails.digest',
+                'html' => 'blomstra-digest::emails.digest',
             ],
             [
-                'notifications' => $queuedBlueprints->map(function (QueuedBlueprint $queuedBlueprint) {
-                    return new Notification(unserialize($queuedBlueprint->blueprint), $queuedBlueprint->date);
-                }),
+                'groupedNotifications' => $discussions,
                 'user' => $this->user,
             ],
             function (Message $message) use ($translator) {
                 $message->to($this->user->email, $this->user->display_name)
-                    ->subject($translator->trans('blomstra-digest.email.subject'));
+                    ->subject($translator->trans('blomstra-digest.email.digest.subject'));
             }
         );
 
