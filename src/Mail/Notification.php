@@ -50,7 +50,7 @@ class Notification
     }
 
     /**
-     * Returns the view to use as an array where [0] is text or html and [1] is the view name
+     * Returns the view to use as an array where [0] is text or html and [1] is the view name.
      */
     protected function viewName(): array
     {
@@ -70,7 +70,7 @@ class Notification
             return [$mode, $originalViewName];
         }
 
-        throw new \Exception('Could not find an email view for ' . get_class($this->blueprint));
+        throw new \Exception('Could not find an email view for '.get_class($this->blueprint));
     }
 
     /**
