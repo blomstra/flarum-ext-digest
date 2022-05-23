@@ -7,6 +7,11 @@ blomstra-digest:
         daily: Daily digest
         weekly: Weekly digest
   email:
-    subject: Your Flarum notification digest
-    greeting: Hey {recipient_display_name}!
-    footer: You can change your digest frequency setting in the Flarum user settings at any time.
+    digest:
+      subject: Your Flarum notification digest
+      greeting: Hey {recipient_display_name}!
+      nonDiscussionGroup: Other notifications
+      footer: You can change your digest frequency setting in the Flarum user settings at any time.
+    newPost:
+      message: "{poster_display_name} made a post in a discussion you're following:"
+      link: View post

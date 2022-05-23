@@ -14,6 +14,9 @@ namespace Blomstra\Digest\Mail;
 use Carbon\Carbon;
 use Flarum\Notification\Blueprint\BlueprintInterface;
 use Flarum\Notification\MailableInterface;
+use Flarum\User\User;
+use Illuminate\Support\Arr;
+use Illuminate\View\Factory;
 
 /**
  * A helper class that is passed to the view.
@@ -30,9 +33,69 @@ class Notification
      */
     public $date;
 
+    const VIEWS_WITH_GREETINGS = [
+        'flarum-mentions::emails.postMentioned',
+        'flarum-mentions::emails.userMentioned',
+        'flarum-subscriptions::emails.newPost',
+    ];
+
+    const VIEW_OVERRIDES = [
+        'flarum-subscriptions::emails.newPost' => 'blomstra-digest::emails.newPost',
+    ];
+
     public function __construct(BlueprintInterface $blueprint, Carbon $date)
     {
         $this->blueprint = $blueprint;
         $this->date = $date;
+    }
+
+    /**
+     * Returns the view to use as an array where [0] is text or html and [1] is the view name.
+     */
+    protected function viewName(): array
+    {
+        foreach (['html', 'text'] as $mode) {
+            $originalViewName = Arr::get($this->blueprint->getEmailView(), $mode);
+
+            if (!$originalViewName) {
+                continue;
+            }
+
+            $override = Arr::get(self::VIEW_OVERRIDES, $originalViewName);
+
+            if ($override) {
+                return ['html', $override];
+            }
+
+            return [$mode, $originalViewName];
+        }
+
+        throw new \Exception('Could not find an email view for '.get_class($this->blueprint));
+    }
+
+    /**
+     * HTML output for that notification.
+     */
+    public function render(User $user): string
+    {
+        $viewName = $this->viewName();
+
+        $html = resolve(Factory::class)->make($viewName[1], [
+            'blueprint' => $this->blueprint,
+            'user'      => $user,
+        ])->render();
+
+        // If an original text view is used verbatim, we must escape the HTML to prevent any HTML injection
+        if ($viewName[0] === 'text') {
+            $html = e($html);
+        }
+
+        // Remove greeting line
+        if (in_array($viewName[1], self::VIEWS_WITH_GREETINGS)) {
+            // Remove first 2 lines of string
+            $html = explode("\n", $html, 3)[2] ?? '';
+        }
+
+        return $html;
     }
 }
