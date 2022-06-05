@@ -107,7 +107,8 @@ class Notification
         return $html;
     }
 
-    public function title(Translator $translator): string {
+    public function title(Translator $translator): string
+    {
         $title = $this->date->format('Y-m-d H:i');
 
         if (!in_array(get_class($this->blueprint), self::BLUEPRINT_REMOVE_SUBJECT)) {
