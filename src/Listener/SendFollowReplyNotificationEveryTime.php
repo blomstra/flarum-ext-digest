@@ -1,5 +1,14 @@
 <?php
 
+/*
+ * This file is part of blomstra/digest.
+ *
+ * Copyright (c) 2022 Team Blomstra.
+ *
+ * For the full copyright and license information, please view the LICENSE.md
+ * file that was distributed with this source code.
+ */
+
 namespace Blomstra\Digest\Listener;
 
 use Blomstra\Digest\Job\SendReplyNotificationToOthers;
@@ -9,7 +18,7 @@ use Illuminate\Contracts\Queue\Queue;
 
 /**
  * Same as Flarum\Subscriptions\Listener\SendNotificationWhenReplyIsPosted to dispatch the modified job
- * With added check for whether the extension is enabled
+ * With added check for whether the extension is enabled.
  */
 class SendFollowReplyNotificationEveryTime
 {

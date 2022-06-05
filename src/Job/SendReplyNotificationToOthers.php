@@ -1,5 +1,14 @@
 <?php
 
+/*
+ * This file is part of blomstra/digest.
+ *
+ * Copyright (c) 2022 Team Blomstra.
+ *
+ * For the full copyright and license information, please view the LICENSE.md
+ * file that was distributed with this source code.
+ */
+
 namespace Blomstra\Digest\Job;
 
 use Flarum\Notification\NotificationSyncer;
@@ -13,7 +22,7 @@ use Illuminate\Queue\SerializesModels;
  * Modified version of Flarum\Subscriptions\Job\SendReplyNotification (original job still runs as well)
  * This code will send the notification to all users who weren't already notified by the original job
  * TODO: The original code was modified in https://github.com/flarum/framework/pull/3445 which will be released in 1.3.1
- * This will require some kind of detection of Flarum 1.2 vs 1.3
+ * This will require some kind of detection of Flarum 1.2 vs 1.3.
  */
 class SendReplyNotificationToOthers implements ShouldQueue
 {
@@ -31,7 +40,7 @@ class SendReplyNotificationToOthers implements ShouldQueue
     protected $lastPostNumber;
 
     /**
-     * @param Post $post
+     * @param Post     $post
      * @param int|null $lastPostNumber
      */
     public function __construct(Post $post, $lastPostNumber)
