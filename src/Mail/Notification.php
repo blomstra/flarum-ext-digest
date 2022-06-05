@@ -12,8 +12,10 @@
 namespace Blomstra\Digest\Mail;
 
 use Carbon\Carbon;
+use Flarum\Locale\Translator;
 use Flarum\Notification\Blueprint\BlueprintInterface;
 use Flarum\Notification\MailableInterface;
+use Flarum\Subscriptions\Notification\NewPostBlueprint;
 use Flarum\User\User;
 use Illuminate\Support\Arr;
 use Illuminate\View\Factory;
@@ -41,6 +43,12 @@ class Notification
 
     const VIEW_OVERRIDES = [
         'flarum-subscriptions::emails.newPost' => 'blomstra-digest::emails.newPost',
+    ];
+
+    // Notifications where we know the mail subject is redundant with the information we already display
+    // Those notifications will only have a date and no additional title
+    const BLUEPRINT_REMOVE_SUBJECT = [
+        NewPostBlueprint::class,
     ];
 
     public function __construct(BlueprintInterface $blueprint, Carbon $date)
@@ -97,5 +105,15 @@ class Notification
         }
 
         return $html;
+    }
+
+    public function title(Translator $translator): string {
+        $title = $this->date->format('Y-m-d H:i');
+
+        if (!in_array(get_class($this->blueprint), self::BLUEPRINT_REMOVE_SUBJECT)) {
+            $title .= ' - '.$this->blueprint->getEmailSubject($translator);
+        }
+
+        return $title;
     }
 }

@@ -56,6 +56,9 @@ class SendDigestToUser extends AbstractJob
 
         $discussions = [];
 
+        $discussionCount = 0;
+        $notificationCount = 0;
+
         foreach ($queuedBlueprints as $queuedBlueprint) {
             /**
              * @var BlueprintInterface $blueprint
@@ -86,9 +89,15 @@ class SendDigestToUser extends AbstractJob
             if (!Arr::exists($discussions, $discussionId)) {
                 // TODO: place "other" key at the end of the array
                 $discussions[$discussionId] = new Group($discussion);
+
+                if ($discussionId) {
+                    $discussionCount++;
+                }
             }
 
             $discussions[$discussionId]->notifications[] = new Notification($blueprint, $queuedBlueprint->date);
+
+            $notificationCount++;
         }
 
         $mailer->send(
@@ -96,6 +105,8 @@ class SendDigestToUser extends AbstractJob
                 'html' => 'blomstra-digest::emails.digest',
             ],
             [
+                'discussionCount'      => $discussionCount,
+                'notificationCount'    => $notificationCount,
                 'groupedNotifications' => $discussions,
                 'user'                 => $this->user,
             ],
