@@ -13,6 +13,7 @@ namespace Blomstra\Digest;
 
 use Flarum\Api\Serializer\CurrentUserSerializer;
 use Flarum\Extend;
+use Flarum\Post\Event\Posted;
 use Flarum\User\Event\Saving;
 use Flarum\User\User;
 use Illuminate\Console\Scheduling\Event;
@@ -32,7 +33,8 @@ return [
         ->namespace('blomstra-digest', __DIR__.'/views'),
 
     (new Extend\Event())
-        ->listen(Saving::class, Listener\SaveUser::class),
+        ->listen(Saving::class, Listener\SaveUser::class)
+        ->listen(Posted::class, Listener\SendFollowReplyNotificationEveryTime::class),
 
     (new Extend\ApiSerializer(CurrentUserSerializer::class))
         ->attribute('digestFrequency', function ($serializer, User $user) {
