@@ -8,6 +8,13 @@
     ]) }}
 </p>
 
+<p>
+    {{ $translator->trans('blomstra-digest.email.digest.summary', [
+        '{discussionCount}' => $discussionCount,
+        '{notificationCount}' => $notificationCount,
+    ]) }}
+</p>
+
 @foreach($groupedNotifications as $group)
     <h2>
         @if ($group->discussion)
@@ -22,8 +29,7 @@
     </h2>
 
     @foreach($group->notifications as $notification)
-        <h3>{{ $notification->date->format('Y-m-d H:i') }}
-            - {{ $notification->blueprint->getEmailSubject($translator) }}</h3>
+        <h3>{{ $notification->title($translator) }}</h3>
 
         {!! $notification->render($user) !!}
 
