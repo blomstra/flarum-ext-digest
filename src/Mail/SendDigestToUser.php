@@ -65,6 +65,11 @@ class SendDigestToUser extends AbstractJob
              */
             $blueprint = unserialize($queuedBlueprint->blueprint);
 
+            if (!($blueprint instanceof BlueprintInterface)) {
+                resolve('log')->info('blomstra-digest: Unserialized blueprint is not an instance of BlueprintInterface');
+                continue;
+            }
+
             $model = $blueprint->getSubject();
 
             try {
