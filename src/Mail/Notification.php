@@ -38,7 +38,7 @@ class Notification
 
     const VIEW_OVERRIDES = [];
 
-    const BLUEPRINT_REMOVE_SUBJECT = [ ];
+    const BLUEPRINT_REMOVE_SUBJECT = [];
 
     public function __construct(BlueprintInterface $blueprint, Carbon $date)
     {

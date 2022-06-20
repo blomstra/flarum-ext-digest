@@ -1,5 +1,14 @@
 <?php
 
+/*
+ * This file is part of blomstra/digest.
+ *
+ * Copyright (c) 2022 Team Blomstra.
+ *
+ * For the full copyright and license information, please view the LICENSE.md
+ * file that was distributed with this source code.
+ */
+
 namespace Blomstra\Digest\Mail;
 
 use Flarum\Discussion\Discussion as FlarumDiscussion;
@@ -8,32 +17,32 @@ use Flarum\User\User;
 use Illuminate\Database\Eloquent\Builder;
 
 /**
- * Helper class to define why a discussion is part of the digest
+ * Helper class to define why a discussion is part of the digest.
  */
 class Discussion
 {
     /**
-     * @var FlarumDiscussion $discussion The discussion model. Will be set by the digest code before passed to the template
+     * @var FlarumDiscussion The discussion model. Will be set by the digest code before passed to the template
      */
     public $discussion = null;
 
     /**
-     * @var bool $isFollowed Whether this discussion is part of a flarum/subscriptions notification
+     * @var bool Whether this discussion is part of a flarum/subscriptions notification
      */
     public $isFollowed = false;
 
     /**
-     * @var bool $isTagFollowed Whether this discussion is part of an fof/follow-tags notification in "follow" mode
+     * @var bool Whether this discussion is part of an fof/follow-tags notification in "follow" mode
      */
     public $isTagFollowed = false;
 
     /**
-     * @var bool $isTagLurked Whether this discussion is part of an fof/follow-tags notification in "lurk" mode
+     * @var bool Whether this discussion is part of an fof/follow-tags notification in "lurk" mode
      */
     public $isTagLurked = false;
 
     /**
-     * @var Post[] $importantPosts Whether this discussion is part of a flarum/subscriptions notification
+     * @var Post[] Whether this discussion is part of a flarum/subscriptions notification
      */
     protected $importantPosts = [];
 
@@ -43,8 +52,10 @@ class Discussion
     }
 
     /**
-     * Helper function to update an important post's information and create it if necessary
+     * Helper function to update an important post's information and create it if necessary.
+     *
      * @param int $id Post database ID
+     *
      * @return Post
      */
     public function importantPost(int $id): Post
@@ -61,8 +72,10 @@ class Discussion
     }
 
     /**
-     * To be called in the template to get which posts are visible in the final email
+     * To be called in the template to get which posts are visible in the final email.
+     *
      * @param User $user
+     *
      * @return array
      */
     public function relevantPosts(User $user): array

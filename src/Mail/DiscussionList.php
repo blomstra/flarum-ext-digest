@@ -1,17 +1,26 @@
 <?php
 
+/*
+ * This file is part of blomstra/digest.
+ *
+ * Copyright (c) 2022 Team Blomstra.
+ *
+ * For the full copyright and license information, please view the LICENSE.md
+ * file that was distributed with this source code.
+ */
+
 namespace Blomstra\Digest\Mail;
 
 use Flarum\Discussion\Discussion as FlarumDiscussion;
 use Flarum\Notification\Blueprint\BlueprintInterface;
 
 /**
- * Manages the list of discussions to render in the digest
+ * Manages the list of discussions to render in the digest.
  */
 class DiscussionList
 {
     /**
-     * @var Discussion[] $discussions
+     * @var Discussion[]
      */
     public $discussions = [];
 
@@ -31,8 +40,10 @@ class DiscussionList
     /**
      * Takes care of an incoming blueprint.
      * If the blueprint can be rendered using our built-in template, true will be returned
-     * If the blueprint is unknown or not related to a discussion, false will be returned and the template will use the fallback rendering method
+     * If the blueprint is unknown or not related to a discussion, false will be returned and the template will use the fallback rendering method.
+     *
      * @param BlueprintInterface $blueprint
+     *
      * @return bool
      */
     public function handle(BlueprintInterface $blueprint): bool
