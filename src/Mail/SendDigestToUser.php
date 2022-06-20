@@ -13,16 +13,13 @@ namespace Blomstra\Digest\Mail;
 
 use Blomstra\Digest\QueuedBlueprint;
 use Carbon\Carbon;
-use Flarum\Discussion\Discussion;
 use Flarum\Notification\Blueprint\BlueprintInterface;
-use Flarum\Post\Post;
 use Flarum\Queue\AbstractJob;
 use Flarum\User\User;
 use Illuminate\Contracts\Mail\Mailer;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Mail\Message;
-use Illuminate\Support\Arr;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
 class SendDigestToUser extends AbstractJob
@@ -54,9 +51,13 @@ class SendDigestToUser extends AbstractJob
             return;
         }
 
-        $discussions = [];
+        $discussions = new DiscussionList();
 
-        $discussionCount = 0;
+        /**
+         * @var Notification $otherNotifications
+         */
+        $otherNotifications = [];
+
         $notificationCount = 0;
 
         foreach ($queuedBlueprints as $queuedBlueprint) {
@@ -81,26 +82,9 @@ class SendDigestToUser extends AbstractJob
                 continue;
             }
 
-            $discussion = null;
-
-            if ($model instanceof Discussion) {
-                $discussion = $model;
-            } elseif ($model instanceof Post) {
-                $discussion = $model->discussion;
+            if (!$discussions->handle($blueprint)) {
+                $otherNotifications[] = new Notification($blueprint, $queuedBlueprint->date);
             }
-
-            $discussionId = $discussion ? $discussion->id : 0;
-
-            if (!Arr::exists($discussions, $discussionId)) {
-                // TODO: place "other" key at the end of the array
-                $discussions[$discussionId] = new Group($discussion);
-
-                if ($discussionId) {
-                    $discussionCount++;
-                }
-            }
-
-            $discussions[$discussionId]->notifications[] = new Notification($blueprint, $queuedBlueprint->date);
 
             $notificationCount++;
         }
@@ -110,10 +94,10 @@ class SendDigestToUser extends AbstractJob
                 'html' => 'blomstra-digest::emails.digest',
             ],
             [
-                'discussionCount'      => $discussionCount,
-                'notificationCount'    => $notificationCount,
-                'groupedNotifications' => $discussions,
-                'user'                 => $this->user,
+                'notificationCount'  => $notificationCount,
+                'discussions'        => $discussions->discussions,
+                'otherNotifications' => $otherNotifications,
+                'user'               => $this->user,
             ],
             function (Message $message) use ($translator) {
                 $message->to($this->user->email, $this->user->display_name)
