@@ -17,5 +17,6 @@ blomstra-digest:
         followed: You follow this discussion
         tagFollowed: You follow this tag
         tagLurked: You lurk this tag
+        visit: Go to discussion
       post:
         mentioned: You were mentioned
