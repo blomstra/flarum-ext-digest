@@ -13,6 +13,10 @@ blomstra-digest:
       summary: You have {notificationCount} new notifications in {discussionCount} discussions.
       nonDiscussionGroup: Other notifications
       footer: You can change your digest frequency setting in the Flarum user settings at any time.
-    newPost:
-      message: "{poster_display_name} made a post in a discussion you're following:"
-      link: View post
+      discussion:
+        followed: You follow this discussion
+        tagFollowed: You follow this tag
+        tagLurked: You lurk this tag
+        visit: Go to discussion
+      post:
+        mentioned: You were mentioned
