@@ -11,9 +11,11 @@
 
 namespace Blomstra\Digest\Notification;
 
+use Blomstra\Digest\MemoryQueue;
 use Flarum\Notification\Driver\EmailNotificationDriver;
 use Flarum\Notification\Job\SendEmailNotificationJob;
 use Flarum\Notification\MailableInterface;
+use Flarum\Settings\SettingsRepositoryInterface;
 use Illuminate\Contracts\Queue\Queue;
 
 class EmailDigestNotificationDriver extends EmailNotificationDriver
@@ -23,11 +25,16 @@ class EmailDigestNotificationDriver extends EmailNotificationDriver
      */
     protected $queue;
 
-    public function __construct(Queue $queue)
+    protected $memoryQueue;
+    protected $settings;
+
+    public function __construct(Queue $queue, MemoryQueue $memoryQueue, SettingsRepositoryInterface $settings)
     {
         parent::__construct($queue);
 
         $this->queue = $queue;
+        $this->memoryQueue = $memoryQueue;
+        $this->settings = $settings;
     }
 
     protected function mailNotifications(MailableInterface $blueprint, array $recipients)
@@ -36,6 +43,8 @@ class EmailDigestNotificationDriver extends EmailNotificationDriver
             if ($user->shouldEmail($blueprint::getType())) {
                 if ($user->digest_frequency) {
                     $this->queue->push(new SaveEmailForDigestJob($blueprint, $user));
+                } else if ($this->settings->get('blomstra-digest.singleDigest')) {
+                    $this->memoryQueue->push($blueprint, $user);
                 } else {
                     $this->queue->push(new SendEmailNotificationJob($blueprint, $user));
                 }
