@@ -43,7 +43,7 @@ class EmailDigestNotificationDriver extends EmailNotificationDriver
             if ($user->shouldEmail($blueprint::getType())) {
                 if ($user->digest_frequency) {
                     $this->queue->push(new SaveEmailForDigestJob($blueprint, $user));
-                } else if ($this->settings->get('blomstra-digest.singleDigest')) {
+                } elseif ($this->settings->get('blomstra-digest.singleDigest')) {
                     $this->memoryQueue->push($blueprint, $user);
                 } else {
                     $this->queue->push(new SendEmailNotificationJob($blueprint, $user));

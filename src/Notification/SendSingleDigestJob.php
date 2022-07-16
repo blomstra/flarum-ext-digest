@@ -36,7 +36,7 @@ class SendSingleDigestJob extends AbstractJob
 
     /**
      * @param BlueprintInterface[] $blueprints
-     * @param User $recipient
+     * @param User                 $recipient
      */
     public function __construct(array $blueprints, User $recipient)
     {
@@ -56,7 +56,7 @@ class SendSingleDigestJob extends AbstractJob
             if (!$discussions->handle($blueprint)) {
                 // TODO: handle more gracefully
                 // This should be done in in the memory queue itself to be able to send those blueprints with the regular Flarum job
-                throw new \Exception('The non-digest grouping is currently not compatible with notifications of type ' . $blueprint::getType());
+                throw new \Exception('The non-digest grouping is currently not compatible with notifications of type '.$blueprint::getType());
             }
         }
 
@@ -66,17 +66,16 @@ class SendSingleDigestJob extends AbstractJob
             ],
             [
                 'discussion' => Arr::first($discussions->discussions), // Must use first() because array is keyed by discussion ID
-                'user' => $this->recipient,
+                'user'       => $this->recipient,
             ],
             function (Message $message) use ($translator, $model) {
                 $isDiscussion = $model instanceof Discussion;
 
                 $message->to($this->recipient->email, $this->recipient->display_name)
-                    ->subject($translator->trans('blomstra-digest.email.' . ($isDiscussion ? 'discussion' : 'post') . '.subject', [
+                    ->subject($translator->trans('blomstra-digest.email.'.($isDiscussion ? 'discussion' : 'post').'.subject', [
                         'title' => $isDiscussion ? $model->title : $model->discussion->title,
                     ]));
             }
         );
-
     }
 }

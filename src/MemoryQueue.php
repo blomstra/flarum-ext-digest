@@ -21,7 +21,7 @@ use Flarum\User\User;
 use Illuminate\Contracts\Queue\Queue;
 
 /**
- * Queues new notifications in memory to group them as needed
+ * Queues new notifications in memory to group them as needed.
  */
 class MemoryQueue
 {
@@ -41,7 +41,7 @@ class MemoryQueue
      * The current implementation relies on a middleware to send pending blueprints
      * This will only work when processing web requests
      * So we need to disable it by default to make sure we don't accidentally suppress notifications sent by commands and async jobs
-     * or other web contexts where the middleware never ran
+     * or other web contexts where the middleware never ran.
      */
     public function enable()
     {
@@ -50,7 +50,7 @@ class MemoryQueue
 
     /**
      * @param BlueprintInterface&MailableInterface $blueprint
-     * @param User $recipient
+     * @param User                                 $recipient
      */
     public function push(BlueprintInterface $blueprint, User $recipient): void
     {
@@ -65,7 +65,7 @@ class MemoryQueue
 
         if ($subject instanceof Discussion) {
             $this->discussionGroups[$recipient->id][$subject->id][] = $blueprint;
-        } else if ($subject instanceof Post) {
+        } elseif ($subject instanceof Post) {
             $this->postGroups[$recipient->id][$subject->id][] = $blueprint;
         } else {
             // If the blueprint can't be grouped in memory, send the email using the regular job
@@ -76,7 +76,7 @@ class MemoryQueue
     /**
      * Sends the blueprints still in memory
      * They will be sent with the "single" digest template, with one per user per discussion/post
-     * The single digest template is used even if there's a single notification for a discussion/post for consistency
+     * The single digest template is used even if there's a single notification for a discussion/post for consistency.
      */
     public function send(): void
     {
