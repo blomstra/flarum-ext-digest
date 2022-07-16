@@ -1,4 +1,8 @@
 blomstra-digest:
+  admin:
+    setting:
+      single: Single Digest
+      singleHelp: Use one-time digest template to group discussion and post notifications sent during a single request lifecycle.
   forum:
     settings:
       frequency: Email Digest Frequency
@@ -20,3 +24,10 @@ blomstra-digest:
         visit: Go to discussion
       post:
         mentioned: You were mentioned
+    single:
+      summary: New notifications for this discussion
+      footer: You can change your notification setting in the Flarum user settings at any time.
+    discussion:
+      subject: New discussion {title}
+    post:
+      subject: New post in discussion {title}
