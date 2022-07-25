@@ -76,7 +76,7 @@ class MemoryQueue
 
             if (!array_key_exists($subject->id, $this->discussionGroups[$recipient->id])) {
                 $this->discussionGroups[$recipient->id][$subject->id] = [
-                    'subject' => $subject,
+                    'subject'    => $subject,
                     'blueprints' => [],
                 ];
             }
@@ -89,7 +89,7 @@ class MemoryQueue
 
             if (!array_key_exists($subject->id, $this->postGroups[$recipient->id])) {
                 $this->postGroups[$recipient->id][$subject->id] = [
-                    'subject' => $subject,
+                    'subject'    => $subject,
                     'blueprints' => [],
                 ];
             }
