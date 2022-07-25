@@ -63,10 +63,38 @@ class MemoryQueue
 
         $subject = $blueprint->getSubject();
 
+        if ($blueprint::getType() === 'newPost') {
+            // The NewPostBlueprint blueprint has the discussion set as the subject, but we want to group it with post-based notifications
+            // Luckily the post is still accessible through the public $post property
+            $subject = $blueprint->post;
+        }
+
         if ($subject instanceof Discussion) {
-            $this->discussionGroups[$recipient->id][$subject->id][] = $blueprint;
+            if (!array_key_exists($recipient->id, $this->discussionGroups)) {
+                $this->discussionGroups[$recipient->id] = [];
+            }
+
+            if (!array_key_exists($subject->id, $this->discussionGroups[$recipient->id])) {
+                $this->discussionGroups[$recipient->id][$subject->id] = [
+                    'subject' => $subject,
+                    'blueprints' => [],
+                ];
+            }
+
+            $this->discussionGroups[$recipient->id][$subject->id]['blueprints'][] = $blueprint;
         } elseif ($subject instanceof Post) {
-            $this->postGroups[$recipient->id][$subject->id][] = $blueprint;
+            if (!array_key_exists($recipient->id, $this->postGroups)) {
+                $this->postGroups[$recipient->id] = [];
+            }
+
+            if (!array_key_exists($subject->id, $this->postGroups[$recipient->id])) {
+                $this->postGroups[$recipient->id][$subject->id] = [
+                    'subject' => $subject,
+                    'blueprints' => [],
+                ];
+            }
+
+            $this->postGroups[$recipient->id][$subject->id]['blueprints'][] = $blueprint;
         } else {
             // If the blueprint can't be grouped in memory, send the email using the regular job
             $this->queue->push(new SendEmailNotificationJob($blueprint, $recipient));
@@ -83,16 +111,16 @@ class MemoryQueue
         foreach ($this->discussionGroups as $userId => $groups) {
             $recipient = User::find($userId);
 
-            foreach ($groups as $blueprints) {
-                $this->queue->push(new SendSingleDigestJob($blueprints, $recipient));
+            foreach ($groups as $group) {
+                $this->queue->push(new SendSingleDigestJob($group['subject'], $group['blueprints'], $recipient));
             }
         }
 
         foreach ($this->postGroups as $userId => $groups) {
             $recipient = User::find($userId);
 
-            foreach ($groups as $blueprints) {
-                $this->queue->push(new SendSingleDigestJob($blueprints, $recipient));
+            foreach ($groups as $group) {
+                $this->queue->push(new SendSingleDigestJob($group['subject'], $group['blueprints'], $recipient));
             }
         }
     }
