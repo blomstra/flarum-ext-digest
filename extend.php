@@ -50,4 +50,10 @@ return [
         ->schedule('digest:send weekly', function (Event $event) {
             $event->weekly();
         }),
+
+    (new Extend\ServiceProvider())
+        ->register(Providers\DigestServiceProvider::class),
+
+    (new Extend\Middleware('api'))
+        ->add(Middleware\MemoryQueueLifecycle::class),
 ];
