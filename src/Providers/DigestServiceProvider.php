@@ -11,13 +11,16 @@
 
 namespace Blomstra\Digest\Providers;
 
+use Blomstra\Digest\Listener\SendNotificationWhenReplyIsPostedOverride;
 use Blomstra\Digest\MemoryQueue;
 use Flarum\Foundation\AbstractServiceProvider;
+use Flarum\Subscriptions\Listener\SendNotificationWhenReplyIsPosted;
 
 class DigestServiceProvider extends AbstractServiceProvider
 {
     public function register()
     {
         $this->container->singleton(MemoryQueue::class);
+        $this->container->bind(SendNotificationWhenReplyIsPosted::class, SendNotificationWhenReplyIsPostedOverride::class);
     }
 }
