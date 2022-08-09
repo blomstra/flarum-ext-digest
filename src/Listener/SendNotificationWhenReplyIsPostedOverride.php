@@ -12,6 +12,7 @@
 namespace Blomstra\Digest\Listener;
 
 use Flarum\Post\Event\Posted;
+use Flarum\Settings\SettingsRepositoryInterface;
 use Flarum\Subscriptions\Job\SendReplyNotification;
 use Illuminate\Contracts\Container\Container;
 use Illuminate\Contracts\Queue\Queue;
@@ -25,16 +26,32 @@ class SendNotificationWhenReplyIsPostedOverride
      */
     protected $queue;
 
-    public function __construct(SyncQueue $queue, Container $container)
+    /**
+     * @var Queue
+     */
+    protected $sync;
+
+    /**
+     * @var SettingsRepositoryInterface
+     */
+    protected $settings;
+
+    public function __construct(Queue $queue, SyncQueue $sync, Container $container, SettingsRepositoryInterface $settings)
     {
         $this->queue = $queue;
-        $this->queue->setContainer($container);
+        $this->sync = $sync;
+        $this->sync->setContainer($container);
+        $this->settings = $settings;
     }
 
     public function handle(Posted $event)
     {
-        $this->queue->push(
-            new SendReplyNotification($event->post, $event->post->discussion->last_post_number)
-        );
+        $job = new SendReplyNotification($event->post, $event->post->discussion->last_post_number);
+
+        if ($this->settings->get('blomstra-digest.singleDigest')) {
+            $this->sync->push($job);
+        } else {
+            $this->queue->push($job);
+        }
     }
 }
