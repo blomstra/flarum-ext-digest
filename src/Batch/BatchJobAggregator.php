@@ -98,7 +98,7 @@ class BatchJobAggregator
     {
         // If a job is currently being processed by the worker, it takes priority over everything else
         // In that case we immediately persist the blueprint to the database with the current batch ID
-        if ($this->workerBatchId) {
+        if ($this->workerBatchId !== null) {
             $this->sync->push(new SaveEmailForDigestJob($blueprint, $recipient, $this->workerBatchId));
 
             return;
@@ -154,7 +154,7 @@ class BatchJobAggregator
             $batchId = $this->batchRepository->getJobBatch($jobId);
 
             // Set the new batch ID as the current one if set. This ignores nested jobs that are unrelated to this feature
-            if ($batchId) {
+            if ($batchId !== null) {
                 $this->workerBatchId = $batchId;
             }
 
@@ -174,7 +174,7 @@ class BatchJobAggregator
 
         // To save up on database requests during jobs that aren't related to notifications
         // We check if the job previously existed in a batch when it started processing
-        if (!$batchId) {
+        if ($batchId === null) {
             return;
         }
 
@@ -187,6 +187,12 @@ class BatchJobAggregator
 
         // There generally won't be multiple levels in the stack with a batch ID, but we never know...
         // So we'll retrieve the next active stack ID here and default to null if there are no levels left in the stack
-        $this->workerBatchId = Arr::last($this->workerBatchIdStack);
+        $this->workerBatchId = null;
+
+        foreach ($this->workerBatchIdStack as $stackValue) {
+            if ($stackValue !== null) {
+                $this->workerBatchId = $stackValue;
+            }
+        }
     }
 }
