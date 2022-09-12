@@ -11,28 +11,28 @@
 
 namespace Blomstra\Digest\Middleware;
 
-use Blomstra\Digest\MemoryQueue;
+use Blomstra\Digest\Batch\BatchJobAggregator;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 
-class MemoryQueueLifecycle implements MiddlewareInterface
+class SingleDigestBatchLifecycle implements MiddlewareInterface
 {
-    protected $memoryQueue;
+    protected $aggregator;
 
-    public function __construct(MemoryQueue $memoryQueue)
+    public function __construct(BatchJobAggregator $aggregator)
     {
-        $this->memoryQueue = $memoryQueue;
+        $this->aggregator = $aggregator;
     }
 
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
-        $this->memoryQueue->enable();
+        $this->aggregator->startAggregating();
 
         $response = $handler->handle($request);
 
-        $this->memoryQueue->send();
+        $this->aggregator->stopAggregating();
 
         return $response;
     }

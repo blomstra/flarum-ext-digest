@@ -17,6 +17,7 @@ use Flarum\Notification\Blueprint\BlueprintInterface;
 use Flarum\Queue\AbstractJob;
 use Flarum\User\User;
 use Illuminate\Contracts\Mail\Mailer;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Mail\Message;
@@ -25,10 +26,23 @@ use Symfony\Contracts\Translation\TranslatorInterface;
 class SendDigestToUser extends AbstractJob
 {
     protected $user;
+    protected $batch;
 
-    public function __construct(User $user)
+    public function __construct(User $user, string $batch = null)
     {
         $this->user = $user;
+        $this->batch = $batch;
+    }
+
+    protected function blueprintQuery(Carbon $processingNow): Builder
+    {
+        $query = QueuedBlueprint::query()->where('user_id', $this->user->id);
+
+        if ($this->batch) {
+            return $query->where('batch', $this->batch);
+        } else {
+            return $query->whereNull('batch')->where('date', '<', $processingNow);
+        }
     }
 
     public function handle(Mailer $mailer, TranslatorInterface $translator)
@@ -40,11 +54,7 @@ class SendDigestToUser extends AbstractJob
         /**
          * @var Collection|QueuedBlueprint[] $queuedBlueprints
          */
-        $queuedBlueprints = QueuedBlueprint::query()
-            ->where('user_id', $this->user->id)
-            ->where('date', '<', $processingNow)
-            ->orderBy('date', 'asc')
-            ->get();
+        $queuedBlueprints = $this->blueprintQuery($processingNow)->orderBy('date', 'asc')->get();
 
         // If there's nothing queued, don't send any mail
         if (count($queuedBlueprints) === 0) {
@@ -106,9 +116,6 @@ class SendDigestToUser extends AbstractJob
         );
 
         // Now that we are done, we can delete all queued blueprints that were just sent
-        QueuedBlueprint::query()
-            ->where('user_id', $this->user->id)
-            ->where('date', '<', $processingNow)
-            ->delete();
+        $this->blueprintQuery($processingNow)->delete();
     }
 }

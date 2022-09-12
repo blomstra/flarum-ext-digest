@@ -16,6 +16,7 @@ use Flarum\Extend;
 use Flarum\User\Event\Saving;
 use Flarum\User\User;
 use Illuminate\Console\Scheduling\Event;
+use Illuminate\Queue\Events as QueueEvents;
 
 return [
     (new Extend\Frontend('forum'))
@@ -32,6 +33,10 @@ return [
         ->namespace('blomstra-digest', __DIR__.'/views'),
 
     (new Extend\Event())
+        ->listen(QueueEvents\JobQueued::class, Listener\AddQueuedJobsToBatch::class)
+        ->listen(QueueEvents\JobProcessing::class, Listener\WatchBatchJobForProcessing::class)
+        ->listen(QueueEvents\JobProcessed::class, Listener\WatchBatchJobsForCompletion::class)
+        ->listen(QueueEvents\JobFailed::class, Listener\WatchBatchJobsForCompletion::class)
         ->listen(Saving::class, Listener\SaveUser::class),
 
     (new Extend\ApiSerializer(CurrentUserSerializer::class))
@@ -52,8 +57,8 @@ return [
         }),
 
     (new Extend\ServiceProvider())
-        ->register(Providers\DigestServiceProvider::class),
+        ->register(Provider\DigestServiceProvider::class),
 
     (new Extend\Middleware('api'))
-        ->add(Middleware\MemoryQueueLifecycle::class),
+        ->add(Middleware\SingleDigestBatchLifecycle::class),
 ];

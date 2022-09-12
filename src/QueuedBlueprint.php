@@ -21,6 +21,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property int    $user_id
  * @property string $blueprint
  * @property Carbon $date
+ * @property string $batch
  * @property User   $user
  */
 class QueuedBlueprint extends AbstractModel
