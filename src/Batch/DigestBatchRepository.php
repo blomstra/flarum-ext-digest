@@ -24,22 +24,25 @@ class DigestBatchRepository
     }
 
     /**
-     * Adds the given job-batch association to the database
+     * Adds the given job-batch association to the database.
+     *
      * @param string $jobId
      * @param string $batchId
      */
     public function addJob(string $jobId, string $batchId): void
     {
         $this->db->table('digest_batches')->insert([
-            'job_id' => $jobId,
-            'batch_id' => $batchId,
+            'job_id'    => $jobId,
+            'batch_id'  => $batchId,
             'queued_at' => Carbon::now(),
         ]);
     }
 
     /**
-     * Retrieves the batch ID for a given job ID. This also acts as an existence check
+     * Retrieves the batch ID for a given job ID. This also acts as an existence check.
+     *
      * @param string $jobId
+     *
      * @return string|null Batch ID
      */
     public function getJobBatch(string $jobId): ?string
@@ -54,8 +57,10 @@ class DigestBatchRepository
     }
 
     /**
-     * Checks if there are any remaining jobs for a given batch
+     * Checks if there are any remaining jobs for a given batch.
+     *
      * @param string $batchId
+     *
      * @return bool
      */
     public function hasJobsLeft(string $batchId): bool
@@ -64,7 +69,8 @@ class DigestBatchRepository
     }
 
     /**
-     * Remove the given job ID from the database
+     * Remove the given job ID from the database.
+     *
      * @param string $jobId
      */
     public function removeJob(string $jobId): void
