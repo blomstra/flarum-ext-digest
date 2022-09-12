@@ -20,7 +20,6 @@ use Flarum\User\User;
 use Illuminate\Contracts\Container\Container;
 use Illuminate\Contracts\Queue\Queue;
 use Illuminate\Queue\SyncQueue;
-use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
 
 /**
