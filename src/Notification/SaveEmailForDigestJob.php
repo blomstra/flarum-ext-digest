@@ -29,10 +29,21 @@ class SaveEmailForDigestJob extends AbstractJob
      */
     private $recipient;
 
-    public function __construct(MailableInterface $blueprint, User $recipient)
+    /**
+     * @var string|null
+     */
+    private $batch;
+
+    public function __construct(MailableInterface $blueprint, User $recipient, string $batch = null)
     {
         $this->blueprint = $blueprint;
         $this->recipient = $recipient;
+        $this->batch = $batch;
+    }
+
+    public function setBatch(string $batch = null)
+    {
+        $this->batch = $batch;
     }
 
     public function handle()
@@ -43,6 +54,7 @@ class SaveEmailForDigestJob extends AbstractJob
         // but this would also break notifications if the related model gets deleted in the meantime
         $queued->blueprint = serialize($this->blueprint);
         $queued->date = Carbon::now();
+        $queued->batch = $this->batch;
         $queued->save();
     }
 }

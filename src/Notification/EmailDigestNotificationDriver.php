@@ -11,10 +11,9 @@
 
 namespace Blomstra\Digest\Notification;
 
-use Blomstra\Digest\MemoryQueue;
+use Blomstra\Digest\Batch\BatchJobAggregator;
 use Flarum\Notification\Blueprint\BlueprintInterface;
 use Flarum\Notification\Driver\EmailNotificationDriver;
-use Flarum\Notification\Job\SendEmailNotificationJob;
 use Flarum\Notification\MailableInterface;
 use Flarum\Notification\NotificationSyncer;
 use Flarum\Settings\SettingsRepositoryInterface;
@@ -27,16 +26,16 @@ class EmailDigestNotificationDriver extends EmailNotificationDriver
      */
     protected $queue;
 
-    protected $memoryQueue;
+    protected $aggregator;
     protected $settings;
     protected $syncer;
 
-    public function __construct(Queue $queue, MemoryQueue $memoryQueue, SettingsRepositoryInterface $settings, NotificationSyncer $syncer)
+    public function __construct(Queue $queue, BatchJobAggregator $aggregator, SettingsRepositoryInterface $settings, NotificationSyncer $syncer)
     {
         parent::__construct($queue);
 
         $this->queue = $queue;
-        $this->memoryQueue = $memoryQueue;
+        $this->aggregator = $aggregator;
         $this->settings = $settings;
         $this->syncer = $syncer;
     }
@@ -59,10 +58,8 @@ class EmailDigestNotificationDriver extends EmailNotificationDriver
             if ($user->shouldEmail($blueprint::getType())) {
                 if ($user->digest_frequency) {
                     $this->queue->push(new SaveEmailForDigestJob($blueprint, $user));
-                } elseif ($this->settings->get('blomstra-digest.singleDigest')) {
-                    $this->memoryQueue->push($blueprint, $user);
                 } else {
-                    $this->queue->push(new SendEmailNotificationJob($blueprint, $user));
+                    $this->aggregator->pushSyncBlueprint($blueprint, $user);
                 }
             }
         }
