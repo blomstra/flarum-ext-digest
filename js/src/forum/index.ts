@@ -24,7 +24,24 @@ app.initializers.add('blomstra/digest', () => {
 
               this.digestFrequencyLoading = true;
 
-              this.user.save({ digestFrequency: value }).then(() => {
+              const attributes: any = {
+                digestFrequency: value,
+              };
+
+              const preferences = this.user.preferences();
+
+              // When enabling digest, turn "notify for all posts" on. We also force this in the backend but this ensures the setting looks correct immediately
+              // When disabling digest, we set "notify for all posts" back to off because it's the easiest implementation
+              if ('flarum-subscriptions.notify_for_all_posts' in preferences) {
+                // Mimics User::savePreferences
+                // But we do it here so we can save both the preferences and frequency with one request
+                attributes.preferences = {
+                  ...preferences,
+                  'flarum-subscriptions.notify_for_all_posts': !!value,
+                };
+              }
+
+              this.user.save(attributes).then(() => {
                 this.digestFrequencyLoading = false;
                 m.redraw();
               });
@@ -35,5 +52,10 @@ app.initializers.add('blomstra/digest', () => {
         ),
       ])
     );
+
+    if (items.has('notifyForAllPosts') && this.user.attribute('digestFrequency') && this.user.preferences()?.['flarum-subscriptions.notify_for_all_posts']) {
+      // Show visually that flarum-subscriptions.notify_for_all_posts cannot be disabled when digest is scheduled
+      items.get('notifyForAllPosts').attrs.disabled = true;
+    }
   });
 });

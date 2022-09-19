@@ -115,6 +115,12 @@ class SendDigestToUser extends AbstractJob
             }
         );
 
+        // If this was a scheduled digest, store the date to the user model
+        if (!$this->batch) {
+            $this->user->last_digest_sent_at = $processingNow;
+            $this->user->save();
+        }
+
         // Now that we are done, we can delete all queued blueprints that were just sent
         $this->blueprintQuery($processingNow)->delete();
     }
