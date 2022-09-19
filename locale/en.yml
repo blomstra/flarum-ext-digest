@@ -21,9 +21,11 @@ blomstra-digest:
         followed: You follow this discussion
         tagFollowed: You follow this tag
         tagLurked: You lurk this tag
+        globalSubscribed: You subscribed to new discussions globally
         visit: Go to discussion
       post:
         mentioned: You were mentioned
+        globalSubscribed: You subscribed to new posts globally
     single:
       summary: New notifications for this discussion
       footer: You can change your notification setting in the Flarum user settings at any time.

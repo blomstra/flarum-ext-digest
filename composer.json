@@ -9,6 +9,14 @@
     "require": {
         "flarum/core": "^1.2.0"
     },
+    "require-dev": {
+        "flarum/mentions": "*",
+        "flarum/subscriptions": "*",
+        "flarum/suspend": "*",
+        "fof/byobu": "*",
+        "fof/follow-tags": "*",
+        "fof/subscribed": "*"
+    },
     "support": {
         "email": "helpdesk@blomstra.net",
         "forum": "https://blomstra.community/t/ext-digest",

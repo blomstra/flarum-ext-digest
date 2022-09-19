@@ -13,12 +13,22 @@ namespace Blomstra\Digest\Mail;
 
 /**
  * Helper class to define why a post is part of the digest.
- *
- * @property \Flarum\Post\Post $post        The post model. Will be set by the Discussion helper automatically
- * @property bool              $isMentioned Whether that post is part of a mention notification
  */
 class Post
 {
+    /**
+     * @var \Flarum\Post\Post The post model. Will be set by the Discussion helper automatically
+     */
     public $post = null;
+
+    /**
+     * @var bool Whether that post is part of a mention notification
+     */
     public $isMentioned = false;
+
+    /**
+     * @var bool Whether this post was notified through fof/subscribed global subscription
+     */
+    public $isGlobalSubscribed = false;
+
 }
