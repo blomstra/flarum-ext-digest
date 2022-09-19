@@ -30,5 +30,4 @@ class Post
      * @var bool Whether this post was notified through fof/subscribed global subscription
      */
     public $isGlobalSubscribed = false;
-
 }
