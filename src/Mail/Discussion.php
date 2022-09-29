@@ -86,13 +86,20 @@ class Discussion
                 $query->whereIn('posts.id', array_keys($this->importantPosts));
 
                 // If the discussion is followed or the tag lurked, always include all posts the user has not yet read
-                // TODO: we should store what is the last post sent in the digest so it's not sent again in the next digest
                 if ($this->isFollowed || $this->isTagLurked) {
-                    $lastReadPostNumber = $this->discussion->readers()
-                        ->where('users.id', $user->id)
-                        ->pluck('last_read_post_number');
+                    $query->orWhere(function (Builder $query) use ($user) {
+                        $lastReadPostNumber = $this->discussion->readers()
+                            ->where('users.id', $user->id)
+                            ->pluck('last_read_post_number');
 
-                    $query->orWhere('number', '>', $lastReadPostNumber ?? 0);
+                        $query->where('number', '>', $lastReadPostNumber ?? 0);
+
+                        // Don't repeat posts that were already included in the last digest
+                        // Otherwise the digests will get longer and longer if the user never go mark the discussion as read
+                        if ($user->last_digest_sent_at) {
+                            $query->where('created_at', '>', $user->last_digest_sent_at);
+                        }
+                    });
                 }
 
                 // The tag is marked as followed if there was a new discussion notification. In this case we'll include the first post
