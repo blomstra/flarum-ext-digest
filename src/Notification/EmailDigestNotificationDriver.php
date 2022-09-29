@@ -29,8 +29,9 @@ class EmailDigestNotificationDriver extends EmailNotificationDriver
     protected $aggregator;
     protected $settings;
     protected $syncer;
+    protected $excludedBlueprints;
 
-    public function __construct(Queue $queue, BatchJobAggregator $aggregator, SettingsRepositoryInterface $settings, NotificationSyncer $syncer)
+    public function __construct(Queue $queue, BatchJobAggregator $aggregator, SettingsRepositoryInterface $settings, NotificationSyncer $syncer, array $excludedBlueprints)
     {
         parent::__construct($queue);
 
@@ -38,6 +39,7 @@ class EmailDigestNotificationDriver extends EmailNotificationDriver
         $this->aggregator = $aggregator;
         $this->settings = $settings;
         $this->syncer = $syncer;
+        $this->excludedBlueprints = $excludedBlueprints;
     }
 
     public function send(BlueprintInterface $blueprint, array $users): void
@@ -54,6 +56,12 @@ class EmailDigestNotificationDriver extends EmailNotificationDriver
 
     protected function mailNotifications(MailableInterface $blueprint, array $recipients)
     {
+        if (in_array(get_class($blueprint), $this->excludedBlueprints)) {
+            parent::mailNotifications($blueprint, $recipients);
+
+            return;
+        }
+
         foreach ($recipients as $user) {
             if ($user->shouldEmail($blueprint::getType())) {
                 if ($user->digest_frequency) {

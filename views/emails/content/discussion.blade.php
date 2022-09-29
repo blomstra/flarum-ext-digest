@@ -61,6 +61,10 @@ if (resolve(\Flarum\Extension\ExtensionManager::class)->isEnabled('flarum-tags')
         <p style="color: rgb(102, 124, 153);">{{ $translator->trans('blomstra-digest.email.digest.discussion.tagLurked') }}</p>
     @endif
 
+    @if ($discussion->isGlobalSubscribed)
+        <p style="color: rgb(102, 124, 153);">{{ $translator->trans('blomstra-digest.email.digest.discussion.globalSubscribed') }}</p>
+    @endif
+
     @foreach($discussion->relevantPosts($user) as $post)
         <div class="Post">
             @php($author = $post->post->user)
@@ -86,6 +90,10 @@ if (resolve(\Flarum\Extension\ExtensionManager::class)->isEnabled('flarum-tags')
 
             @if ($post->isMentioned)
                 <p style="color: rgb(102, 124, 153);">{{ $translator->trans('blomstra-digest.email.digest.post.mentioned') }}</p>
+            @endif
+
+            @if ($post->isGlobalSubscribed)
+                <p style="color: rgb(102, 124, 153);">{{ $translator->trans('blomstra-digest.email.digest.post.globalSubscribed') }}</p>
             @endif
 
             <div class="PostBody">

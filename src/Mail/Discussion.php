@@ -42,6 +42,11 @@ class Discussion
     public $isTagLurked = false;
 
     /**
+     * @var bool Whether this discussion was notified through fof/subscribed global subscription
+     */
+    public $isGlobalSubscribed = false;
+
+    /**
      * @var Post[] Whether this discussion is part of a flarum/subscriptions notification
      */
     protected $importantPosts = [];
@@ -103,7 +108,7 @@ class Discussion
                 }
 
                 // The tag is marked as followed if there was a new discussion notification. In this case we'll include the first post
-                if ($this->isTagFollowed) {
+                if ($this->isTagFollowed || $this->isGlobalSubscribed) {
                     $query->orWhere('number', 1);
                 }
             })

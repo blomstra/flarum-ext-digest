@@ -12,7 +12,11 @@
 namespace Blomstra\Digest\Mail;
 
 use Flarum\Discussion\Discussion as FlarumDiscussion;
+use Flarum\Mentions\Notification as FlarumMentions;
 use Flarum\Notification\Blueprint\BlueprintInterface;
+use Flarum\Subscriptions\Notification as FlarumSubscriptions;
+use FoF\FollowTags\Notifications as FoFFollowTags;
+use FoF\Subscribed\Blueprints as FoFSubscribed;
 
 /**
  * Manages the list of discussions to render in the digest.
@@ -48,32 +52,38 @@ class DiscussionList
      */
     public function handle(BlueprintInterface $blueprint): bool
     {
-        // From flarum/subscriptions
-        if ($blueprint::getType() === 'newPost') {
+        if ($blueprint instanceof FlarumSubscriptions\NewPostBlueprint) {
             $this->discussion($blueprint->getSubject())->isFollowed = true;
 
             return true;
         }
 
-        // From flarum/mentions
-        if ($blueprint::getType() === 'postMentioned' || $blueprint::getType() === 'userMentioned') {
+        if ($blueprint instanceof FlarumMentions\PostMentionedBlueprint || $blueprint instanceof FlarumMentions\UserMentionedBlueprint) {
             $this->discussion($blueprint->getSubject()->discussion)->importantPost($blueprint->getSubject()->id)->isMentioned = true;
 
             return true;
         }
 
-        // From fof/follow-tags
-        if ($blueprint::getType() === 'newDiscussionInTag') {
+        if ($blueprint instanceof FoFFollowTags\NewDiscussionTagBlueprint) {
             $this->discussion($blueprint->getSubject())->isTagFollowed = true;
 
             return true;
         }
 
-        // TODO: fof/follow-tags's NewDiscussionTagBlueprint could be handled in our template in the future. Currently isn't
-
-        // From fof/follow-tags
-        if ($blueprint::getType() === 'newPostInTag') {
+        if ($blueprint instanceof FoFFollowTags\NewPostBlueprint) {
             $this->discussion($blueprint->getSubject()->discussion)->isTagLurked = true;
+
+            return true;
+        }
+
+        if ($blueprint instanceof FoFSubscribed\DiscussionCreatedBlueprint) {
+            $this->discussion($blueprint->getSubject())->isGlobalSubscribed = true;
+
+            return true;
+        }
+
+        if ($blueprint instanceof FoFSubscribed\PostCreatedBlueprint) {
+            $this->discussion($blueprint->getSubject()->discussion)->importantPost($blueprint->getSubject()->id)->isGlobalSubscribed = true;
 
             return true;
         }
