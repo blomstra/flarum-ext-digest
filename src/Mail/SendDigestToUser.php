@@ -21,6 +21,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Mail\Message;
+use Illuminate\Support\Arr;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
 class SendDigestToUser extends AbstractJob
@@ -108,10 +109,24 @@ class SendDigestToUser extends AbstractJob
                 'discussions'        => $discussions->discussions,
                 'otherNotifications' => $otherNotifications,
                 'user'               => $this->user,
+                'single'             => (bool)$this->batch,
             ],
-            function (Message $message) use ($translator) {
-                $message->to($this->user->email, $this->user->display_name)
-                    ->subject($translator->trans('blomstra-digest.email.digest.subject'));
+            function (Message $message) use ($translator, $discussions) {
+                $message->to($this->user->email, $this->user->display_name);
+
+                if ($this->batch) {
+                    $discussion = count($discussions->discussions) > 0 ? Arr::first($discussions->discussions)->discussion : null;
+
+                    if ($discussion) {
+                        $message->subject($translator->trans('blomstra-digest.email.discussion.subject', [
+                            'title' => $discussion->title,
+                        ]));
+                    } else {
+                        $message->subject($translator->trans('blomstra-digest.email.single.subject'));
+                    }
+                } else {
+                    $message->subject($translator->trans('blomstra-digest.email.digest.subject'));
+                }
             }
         );
 
