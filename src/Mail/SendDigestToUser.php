@@ -109,7 +109,7 @@ class SendDigestToUser extends AbstractJob
                 'discussions'        => $discussions->discussions,
                 'otherNotifications' => $otherNotifications,
                 'user'               => $this->user,
-                'single'             => (bool)$this->batch,
+                'single'             => (bool) $this->batch,
             ],
             function (Message $message) use ($translator, $discussions) {
                 $message->to($this->user->email, $this->user->display_name);
