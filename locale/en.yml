@@ -27,9 +27,7 @@ blomstra-digest:
         mentioned: You were mentioned
         globalSubscribed: You subscribed to new posts globally
     single:
-      summary: New notifications for this discussion
+      subject: You have new Flarum notifications
       footer: You can change your notification setting in the Flarum user settings at any time.
     discussion:
-      subject: New discussion {title}
-    post:
-      subject: New post in discussion {title}
+      subject: Notifications for discussion {title}

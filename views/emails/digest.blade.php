@@ -23,6 +23,6 @@
     @include('blomstra-digest::emails.content.other-notifications', ['notifications' => $otherNotifications])
 
     <div class="container">
-        <p>{{ $translator->trans('blomstra-digest.email.digest.footer') }}</p>
+        <p>{{ $translator->trans('blomstra-digest.email.' . ($single ? 'single' : 'digest') . '.footer') }}</p>
     </div>
 @endsection
