@@ -71,7 +71,7 @@ class DiscussionList
         }
 
         if ($blueprint instanceof FoFFollowTags\NewPostBlueprint) {
-            $this->discussion($blueprint->getSubject()->discussion)->isTagLurked = true;
+            $this->discussion($blueprint->getSubject())->isTagLurked = true;
 
             return true;
         }

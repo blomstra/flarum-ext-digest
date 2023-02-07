@@ -84,13 +84,15 @@ class SendDigestToUser extends AbstractJob
 
             $model = $blueprint->getSubject();
 
-            try {
-                // Retrieve an updated version of the model
-                // This allows us to ignore notifications that might be for deleted models
-                // And avoids any error when trying to retrieve relationships off that model later
-                $model->refresh();
-            } catch (ModelNotFoundException $exception) {
-                continue;
+            if ($model) {
+                try {
+                    // Retrieve an updated version of the model
+                    // This allows us to ignore notifications that might be for deleted models
+                    // And avoids any error when trying to retrieve relationships off that model later
+                    $model->refresh();
+                } catch (ModelNotFoundException $exception) {
+                    continue;
+                }
             }
 
             if (!$discussions->handle($blueprint)) {
@@ -98,6 +100,12 @@ class SendDigestToUser extends AbstractJob
             }
 
             $notificationCount++;
+        }
+
+        // We already checked the blueprint count earlier, but it's possible we end up at zero again
+        // after discarding deleted models and incompatible blueprints
+        if ($notificationCount === 0) {
+            return;
         }
 
         $mailer->send(
