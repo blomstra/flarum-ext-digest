@@ -53,7 +53,11 @@ app.initializers.add('blomstra/digest', () => {
       ])
     );
 
-    if (items.has('notifyForAllPosts') && this.user.attribute('digestFrequency') && this.user.preferences()?.['flarum-subscriptions.notify_for_all_posts']) {
+    if (
+      items.has('notifyForAllPosts') &&
+      this.user.attribute('digestFrequency') &&
+      this.user.preferences()?.['flarum-subscriptions.notify_for_all_posts']
+    ) {
       // Show visually that flarum-subscriptions.notify_for_all_posts cannot be disabled when digest is scheduled
       items.get('notifyForAllPosts').attrs.disabled = true;
     }
