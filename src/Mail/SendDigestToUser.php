@@ -118,6 +118,7 @@ class SendDigestToUser extends AbstractJob
                 'otherNotifications' => $otherNotifications,
                 'user'               => $this->user,
                 'single'             => (bool) $this->batch,
+                'forumTitle'         => resolve('flarum.settings')->get('forum_title'),
             ],
             function (Message $message) use ($translator, $discussions) {
                 $message->to($this->user->email, $this->user->display_name);
