@@ -130,7 +130,7 @@ class SendDigestToUser extends AbstractJob
 
                     if ($discussion) {
                         $message->subject($translator->trans('blomstra-digest.email.discussion.subject', [
-                            'title' => $discussion->title,
+                            'title'      => $discussion->title,
                             'forumTitle' => $forumTitle,
                         ]));
                     } else {
