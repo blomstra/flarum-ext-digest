@@ -12,11 +12,11 @@ blomstra-digest:
         weekly: Weekly digest
   email:
     digest:
-      subject: Your Flarum notification digest
+      subject: Your {forumTitle} notification digest
       greeting: Hey {recipient_display_name}!
       summary: You have {notificationCount} new notifications in {discussionCount} discussions.
       nonDiscussionGroup: Other notifications
-      footer: You can change your digest frequency setting in the Flarum user settings at any time.
+      footer: You can change your digest frequency setting in the {forumTitle} user settings at any time.
       discussion:
         followed: You follow this discussion
         tagFollowed: You follow this tag
@@ -27,7 +27,7 @@ blomstra-digest:
         mentioned: You were mentioned
         globalSubscribed: You subscribed to new posts globally
     single:
-      subject: You have new Flarum notifications
-      footer: You can change your notification setting in the Flarum user settings at any time.
+      subject: You have new {forumTitle} notifications
+      footer: You can change your notification setting in the {forumTitle} user settings at any time.
     discussion:
       subject: Notifications for discussion {title}

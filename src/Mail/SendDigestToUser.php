@@ -108,6 +108,8 @@ class SendDigestToUser extends AbstractJob
             return;
         }
 
+        $forumTitle = resolve('flarum.settings')->get('forum_title');
+
         $mailer->send(
             [
                 'html' => 'blomstra-digest::emails.digest',
@@ -118,8 +120,9 @@ class SendDigestToUser extends AbstractJob
                 'otherNotifications' => $otherNotifications,
                 'user'               => $this->user,
                 'single'             => (bool) $this->batch,
+                'forumTitle'         => $forumTitle,
             ],
-            function (Message $message) use ($translator, $discussions) {
+            function (Message $message) use ($translator, $discussions, $forumTitle) {
                 $message->to($this->user->email, $this->user->display_name);
 
                 if ($this->batch) {
@@ -127,13 +130,18 @@ class SendDigestToUser extends AbstractJob
 
                     if ($discussion) {
                         $message->subject($translator->trans('blomstra-digest.email.discussion.subject', [
-                            'title' => $discussion->title,
+                            'title'      => $discussion->title,
+                            'forumTitle' => $forumTitle,
                         ]));
                     } else {
-                        $message->subject($translator->trans('blomstra-digest.email.single.subject'));
+                        $message->subject($translator->trans('blomstra-digest.email.single.subject', [
+                            'forumTitle' => $forumTitle,
+                        ]));
                     }
                 } else {
-                    $message->subject($translator->trans('blomstra-digest.email.digest.subject'));
+                    $message->subject($translator->trans('blomstra-digest.email.digest.subject', [
+                        'forumTitle' => $forumTitle,
+                    ]));
                 }
             }
         );
