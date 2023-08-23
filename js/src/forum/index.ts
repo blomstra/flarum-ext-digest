@@ -17,7 +17,7 @@ app.initializers.add('blomstra/digest', () => {
               weekly: app.translator.trans('blomstra-digest.forum.settings.frequencyOptions.weekly'),
             },
             value: this.user!.attribute('digestFrequency') || 'immediate',
-            onchange: (value: null|string) => {
+            onchange: (value: null | string) => {
               if (value === 'immediate') {
                 value = null;
               }
@@ -69,29 +69,27 @@ app.initializers.add('blomstra/digest', () => {
         'digestHour',
         m('.Form-group', [
           m('label', app.translator.trans('blomstra-digest.forum.settings.hour')),
-          Select.component(
-            {
-              // hours with UTC timezone
-              options: Array.from(Array(24).keys()).reduce((options, hour) => {
-                options[hour] = hour.toString().padStart(2, '0') + ':00' + ' UTC';
-                return options;
-              }, {} as any),
-              value: this.user!.attribute('digestHour') || '0',
-              onchange: (value: null | string) => {
-                this.digestHourLoading = true;
+          Select.component({
+            // hours with UTC timezone
+            options: Array.from(Array(24).keys()).reduce((options, hour) => {
+              options[hour] = hour.toString().padStart(2, '0') + ':00' + ' UTC';
+              return options;
+            }, {} as any),
+            value: this.user!.attribute('digestHour') || '0',
+            onchange: (value: null | string) => {
+              this.digestHourLoading = true;
 
-                const attributes: any = {
-                  digestHour: value,
-                };
+              const attributes: any = {
+                digestHour: value,
+              };
 
-                this.user!.save(attributes).then(() => {
-                  this.digestHourLoading = false;
-                  m.redraw();
-                });
-              },
-              disabled: this.digestHourLoading,
-            }
-          ),
+              this.user!.save(attributes).then(() => {
+                this.digestHourLoading = false;
+                m.redraw();
+              });
+            },
+            disabled: this.digestHourLoading,
+          }),
         ])
       );
     }
