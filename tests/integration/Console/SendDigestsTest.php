@@ -1,10 +1,18 @@
 <?php
 
+/*
+ * This file is part of blomstra/digest.
+ *
+ * Copyright (c) 2022 Team Blomstra.
+ *
+ * For the full copyright and license information, please view the LICENSE.md
+ * file that was distributed with this source code.
+ */
+
 namespace Blomstra\Digest\Tests\integration\Console;
 
 use Blomstra\Digest\Tests\integration\RunsConsoleTests;
 use Carbon\Carbon;
-use Flarum\Discussion\Discussion;
 use Flarum\Testing\integration\RetrievesAuthorizedUsers;
 use Flarum\Testing\integration\TestCase;
 use Flarum\User\User;
@@ -47,9 +55,9 @@ class SendDigestsTest extends TestCase
             'users' => [
                 $this->normalUser(),
                 ['id' => 3, 'username' => 'receiver', 'email' => 'receiver@machine.local', 'is_email_confirmed' => 1, 'preferences' => $prefs = json_encode([
-                    'notify_newPost_email' => true,
-                    'notify_postMentioned_email' => true,
-                    'notify_userMentioned_email' => true,
+                    'notify_newPost_email'                      => true,
+                    'notify_postMentioned_email'                => true,
+                    'notify_userMentioned_email'                => true,
                     'flarum-subscriptions.notify_for_all_posts' => true,
                 ])],
                 ['id' => 4, 'username' => 'receiver2', 'email' => 'receiver2@machine.local', 'is_email_confirmed' => 1, 'preferences' => $prefs],
@@ -363,10 +371,10 @@ class SendDigestsTest extends TestCase
         $this->send(
             $this->request('POST', '/api/discussions', [
                 'authenticatedAs' => 1,
-                'json' => [
+                'json'            => [
                     'data' => [
                         'attributes' => [
-                            'title' => 'foo bar',
+                            'title'   => 'foo bar',
                             'content' => "@$user->username foo bar",
                         ],
                     ],
@@ -380,19 +388,19 @@ class SendDigestsTest extends TestCase
         $response = $this->send(
             $this->request('POST', '/api/posts', [
                 'authenticatedAs' => $userId,
-                'json' => [
+                'json'            => [
                     'data' => [
                         'attributes' => [
-                            'content' => 'foo bar'
+                            'content' => 'foo bar',
                         ],
                         'relationships' => [
                             'discussion' => [
                                 'data' => [
                                     'id' => $discussionId,
-                                ]
-                            ]
+                                ],
+                            ],
                         ],
-                    ]
+                    ],
                 ],
             ])
         );
@@ -405,7 +413,6 @@ class SendDigestsTest extends TestCase
         }, range(0, 23));
     }
 }
-
 
 class FakeMailer implements Factory, Mailer, MailQueue
 {
