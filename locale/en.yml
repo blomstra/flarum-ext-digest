@@ -10,6 +10,7 @@ blomstra-digest:
         immediate: Send each notification immediately
         daily: Daily digest
         weekly: Weekly digest
+      hour: Hour of day to send digest
   email:
     digest:
       subject: Your {forumTitle} notification digest

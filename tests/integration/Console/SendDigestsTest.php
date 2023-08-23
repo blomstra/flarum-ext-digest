@@ -46,13 +46,13 @@ class SendDigestsTest extends TestCase
             ],
             'users' => [
                 $this->normalUser(),
-                ['id' => 3, 'username' => 'receiver', 'email' => 'receiver@machine.local', 'is_email_confirmed' => 1, 'digest_frequency' => 'daily', 'preferences' => $prefs = json_encode([
+                ['id' => 3, 'username' => 'receiver', 'email' => 'receiver@machine.local', 'is_email_confirmed' => 1, 'preferences' => $prefs = json_encode([
                     'notify_newPost_email' => true,
                     'notify_postMentioned_email' => true,
                     'notify_userMentioned_email' => true,
                     'flarum-subscriptions.notify_for_all_posts' => true,
                 ])],
-                ['id' => 4, 'username' => 'receiver2', 'email' => 'receiver2@machine.local', 'is_email_confirmed' => 1, 'digest_frequency' => 'daily', 'preferences' => $prefs],
+                ['id' => 4, 'username' => 'receiver2', 'email' => 'receiver2@machine.local', 'is_email_confirmed' => 1, 'preferences' => $prefs],
             ],
             'discussion_user' => [
                 ['discussion_id' => 1, 'user_id' => 3, 'subscription' => 'follow'],
@@ -62,9 +62,47 @@ class SendDigestsTest extends TestCase
         ]);
     }
 
-    public function test_notifications_are_aggregated_then_sent_daily_for_daily_frequency()
+    public function test_notifications_are_not_aggregated_then_sent_when_no_frequency_set()
     {
-        Carbon::setTestNow(Carbon::createFromDate(2023, 7, 21)->startOfDay());
+        $this->app();
+
+        Carbon::setTestNow($now = Carbon::createFromDate(2023, 7, 21)->setTime(12, 00));
+
+        User::query()
+            ->whereIn('id', [3, 4])
+            ->update(['digest_frequency' => null, 'last_digest_sent_at' => $now]);
+
+        $queuedBlueprints = $this->database()->table('digest_queued_blueprints')->count();
+        $this->assertEquals(0, $queuedBlueprints);
+
+        $this->mimicUserMentionNotification(3);
+        $this->mimicSubscriptionsNotification(2, 1);
+        $this->mimicSubscriptionsNotification(1, 1);
+        $this->mimicSubscriptionsNotification(1, 4);
+
+        $queuedBlueprints = $this->database()->table('digest_queued_blueprints')->count();
+        $this->assertEquals(0, $queuedBlueprints);
+
+        Carbon::setTestNow($now->addDay());
+
+        $this->app()->getContainer()->instance(Mailer::class, $mailer = new FakeMailer());
+
+        $this->runCommand([
+            'command' => 'digest:send',
+        ]);
+
+        $mailer->assertSentCount(0);
+    }
+
+    public function test_notifications_are_aggregated_then_sent_daily_for_daily_frequency_when_no_hour_is_set_defaulting_to_midnight_time()
+    {
+        $this->app();
+
+        Carbon::setTestNow($now = Carbon::createFromDate(2023, 7, 21)->setTime(12, 00));
+
+        User::query()
+            ->whereIn('id', [3, 4])
+            ->update(['digest_frequency' => 'daily', 'last_digest_sent_at' => $now]);
 
         $queuedBlueprints = $this->database()->table('digest_queued_blueprints')->count();
         $this->assertEquals(0, $queuedBlueprints);
@@ -77,27 +115,26 @@ class SendDigestsTest extends TestCase
         $queuedBlueprints = $this->database()->table('digest_queued_blueprints')->count();
         $this->assertEquals(5, $queuedBlueprints);
 
-        Carbon::setTestNow(Carbon::createFromDate(2023, 7, 22)->endOfDay());
+        Carbon::setTestNow($now->addDays(2)->setTime(00, 00));
 
         $this->app()->getContainer()->instance(Mailer::class, $mailer = new FakeMailer());
 
         $this->runCommand([
             'command' => 'digest:send',
-            'frequency' => 'daily',
         ]);
 
         $mailer->assertSentCount(2);
     }
 
-    public function test_notifications_are_aggregated_then_sent_daily_for_weekly_frequency()
+    public function test_notifications_are_aggregated_then_sent_weekly_for_weekly_frequency_when_no_hour_is_set_defaulting_to_midnight_time()
     {
         $this->app();
 
+        Carbon::setTestNow($now = Carbon::createFromDate(2023, 7, 21)->setTime(12, 00));
+
         User::query()
             ->whereIn('id', [3, 4])
-            ->update(['digest_frequency' => 'weekly']);
-
-        Carbon::setTestNow(Carbon::createFromDate(2023, 7, 21)->startOfDay());
+            ->update(['digest_frequency' => 'weekly', 'last_digest_sent_at' => $now]);
 
         $queuedBlueprints = $this->database()->table('digest_queued_blueprints')->count();
         $this->assertEquals(0, $queuedBlueprints);
@@ -110,16 +147,211 @@ class SendDigestsTest extends TestCase
         $queuedBlueprints = $this->database()->table('digest_queued_blueprints')->count();
         $this->assertEquals(5, $queuedBlueprints);
 
-        Carbon::setTestNow(Carbon::createFromDate(2023, 7, 28)->endOfDay());
+        Carbon::setTestNow($now->addWeek()->addDay()->setTime(00, 00));
 
         $this->app()->getContainer()->instance(Mailer::class, $mailer = new FakeMailer());
 
         $this->runCommand([
             'command' => 'digest:send',
-            'frequency' => 'weekly',
         ]);
 
         $mailer->assertSentCount(2);
+    }
+
+    /** @dataProvider hours */
+    public function test_notifications_are_aggregated_then_sent_daily_for_daily_frequency_when_hour_is_set(int $hour)
+    {
+        $this->app();
+
+        Carbon::setTestNow($now = Carbon::createFromDate(2023, 7, 21)->setTime($hour, 00));
+
+        User::query()
+            ->whereIn('id', [3, 4])
+            ->update(['digest_frequency' => 'daily', 'digest_hour' => $hour, 'last_digest_sent_at' => $now]);
+
+        $queuedBlueprints = $this->database()->table('digest_queued_blueprints')->count();
+        $this->assertEquals(0, $queuedBlueprints);
+
+        $this->mimicUserMentionNotification(3);
+        $this->mimicSubscriptionsNotification(2, 1);
+        $this->mimicSubscriptionsNotification(1, 1);
+        $this->mimicSubscriptionsNotification(1, 4);
+
+        $queuedBlueprints = $this->database()->table('digest_queued_blueprints')->count();
+        $this->assertEquals(5, $queuedBlueprints);
+
+        Carbon::setTestNow($now->addDay());
+
+        $this->app()->getContainer()->instance(Mailer::class, $mailer = new FakeMailer());
+
+        $this->runCommand([
+            'command' => 'digest:send',
+        ]);
+
+        $mailer->assertSentCount(2);
+    }
+
+    /** @dataProvider hours */
+    public function test_notifications_are_aggregated_then_sent_weekly_for_weekly_frequency_when_hour_is_set(int $hour)
+    {
+        $this->app();
+
+        Carbon::setTestNow($now = Carbon::createFromDate(2023, 7, 21)->setTime($hour, 00));
+
+        User::query()
+            ->whereIn('id', [3, 4])
+            ->update(['digest_frequency' => 'weekly', 'digest_hour' => $hour, 'last_digest_sent_at' => $now]);
+
+        $queuedBlueprints = $this->database()->table('digest_queued_blueprints')->count();
+        $this->assertEquals(0, $queuedBlueprints);
+
+        $this->mimicUserMentionNotification(3);
+        $this->mimicSubscriptionsNotification(2, 1);
+        $this->mimicSubscriptionsNotification(1, 1);
+        $this->mimicSubscriptionsNotification(1, 4);
+
+        $queuedBlueprints = $this->database()->table('digest_queued_blueprints')->count();
+        $this->assertEquals(5, $queuedBlueprints);
+
+        Carbon::setTestNow($now->addWeek());
+
+        $this->app()->getContainer()->instance(Mailer::class, $mailer = new FakeMailer());
+
+        $this->runCommand([
+            'command' => 'digest:send',
+        ]);
+
+        $mailer->assertSentCount(2);
+    }
+
+    /** @dataProvider hours */
+    public function test_notifications_are_aggregated_then_sent_daily_for_daily_frequency_when_hour_is_set_and_matches(int $hour)
+    {
+        $this->app();
+
+        Carbon::setTestNow($now = Carbon::createFromDate(2023, 7, 21)->setTime($hour, 00));
+
+        User::query()
+            ->whereIn('id', [3, 4])
+            ->update(['digest_frequency' => 'daily', 'digest_hour' => 15, 'last_digest_sent_at' => $now]);
+
+        $queuedBlueprints = $this->database()->table('digest_queued_blueprints')->count();
+        $this->assertEquals(0, $queuedBlueprints);
+
+        $this->mimicUserMentionNotification(3);
+        $this->mimicSubscriptionsNotification(2, 1);
+        $this->mimicSubscriptionsNotification(1, 1);
+        $this->mimicSubscriptionsNotification(1, 4);
+
+        $queuedBlueprints = $this->database()->table('digest_queued_blueprints')->count();
+        $this->assertEquals(5, $queuedBlueprints);
+
+        Carbon::setTestNow($now->addDay());
+
+        $this->app()->getContainer()->instance(Mailer::class, $mailer = new FakeMailer());
+
+        $this->runCommand([
+            'command' => 'digest:send',
+        ]);
+
+        $mailer->assertSentCount($hour === 15 ? 2 : 0);
+    }
+
+    /** @dataProvider hours */
+    public function test_notifications_are_aggregated_then_sent_weekly_for_weekly_frequency_when_hour_is_set_and_matches(int $hour)
+    {
+        $this->app();
+
+        Carbon::setTestNow($now = Carbon::createFromDate(2023, 7, 21)->setTime($hour, 00));
+
+        User::query()
+            ->whereIn('id', [3, 4])
+            ->update(['digest_frequency' => 'weekly', 'digest_hour' => 20, 'last_digest_sent_at' => $now]);
+
+        $queuedBlueprints = $this->database()->table('digest_queued_blueprints')->count();
+        $this->assertEquals(0, $queuedBlueprints);
+
+        $this->mimicUserMentionNotification(3);
+        $this->mimicSubscriptionsNotification(2, 1);
+        $this->mimicSubscriptionsNotification(1, 1);
+        $this->mimicSubscriptionsNotification(1, 4);
+
+        $queuedBlueprints = $this->database()->table('digest_queued_blueprints')->count();
+        $this->assertEquals(5, $queuedBlueprints);
+
+        Carbon::setTestNow($now->addWeek());
+
+        $this->app()->getContainer()->instance(Mailer::class, $mailer = new FakeMailer());
+
+        $this->runCommand([
+            'command' => 'digest:send',
+        ]);
+
+        $mailer->assertSentCount($hour === 20 ? 2 : 0);
+    }
+
+    public function test_notifications_are_aggregated_but_not_sent_less_than_a_day_before_for_daily_frequency()
+    {
+        $this->app();
+
+        Carbon::setTestNow($now = Carbon::createFromDate(2023, 7, 21)->setTime(12, 00));
+
+        User::query()
+            ->whereIn('id', [3, 4])
+            ->update(['digest_frequency' => 'daily', 'last_digest_sent_at' => $now]);
+
+        $queuedBlueprints = $this->database()->table('digest_queued_blueprints')->count();
+        $this->assertEquals(0, $queuedBlueprints);
+
+        $this->mimicUserMentionNotification(3);
+        $this->mimicSubscriptionsNotification(2, 1);
+        $this->mimicSubscriptionsNotification(1, 1);
+        $this->mimicSubscriptionsNotification(1, 4);
+
+        $queuedBlueprints = $this->database()->table('digest_queued_blueprints')->count();
+        $this->assertEquals(5, $queuedBlueprints);
+
+        Carbon::setTestNow($now->addDay()->subHours(2));
+
+        $this->app()->getContainer()->instance(Mailer::class, $mailer = new FakeMailer());
+
+        $this->runCommand([
+            'command' => 'digest:send',
+        ]);
+
+        $mailer->assertSentCount(0);
+    }
+
+    public function test_notifications_are_aggregated_but_not_sent_less_than_a_week_before_for_weekly_frequency()
+    {
+        $this->app();
+
+        Carbon::setTestNow($now = Carbon::createFromDate(2023, 7, 21)->setTime(12, 00));
+
+        User::query()
+            ->whereIn('id', [3, 4])
+            ->update(['digest_frequency' => 'weekly', 'last_digest_sent_at' => $now]);
+
+        $queuedBlueprints = $this->database()->table('digest_queued_blueprints')->count();
+        $this->assertEquals(0, $queuedBlueprints);
+
+        $this->mimicUserMentionNotification(3);
+        $this->mimicSubscriptionsNotification(2, 1);
+        $this->mimicSubscriptionsNotification(1, 1);
+        $this->mimicSubscriptionsNotification(1, 4);
+
+        $queuedBlueprints = $this->database()->table('digest_queued_blueprints')->count();
+        $this->assertEquals(5, $queuedBlueprints);
+
+        Carbon::setTestNow($now->addWeek()->subDay());
+
+        $this->app()->getContainer()->instance(Mailer::class, $mailer = new FakeMailer());
+
+        $this->runCommand([
+            'command' => 'digest:send',
+        ]);
+
+        $mailer->assertSentCount(0);
     }
 
     private function mimicUserMentionNotification(int $userId): void
@@ -164,6 +396,13 @@ class SendDigestsTest extends TestCase
                 ],
             ])
         );
+    }
+
+    public function hours(): array
+    {
+        return array_map(function ($hour) {
+            return [$hour];
+        }, range(0, 23));
     }
 }
 

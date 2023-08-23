@@ -17,7 +17,8 @@
         "flarum/likes": "*",
         "fof/follow-tags": "*",
         "fof/subscribed": "*",
-        "flarum/testing": "^1.0.0"
+        "flarum/testing": "^1.0.0",
+        "symfony/var-dumper": "^6.3"
     },
     "support": {
         "email": "helpdesk@blomstra.net",
