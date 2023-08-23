@@ -50,7 +50,8 @@
         },
         "flarum-cli": {
             "modules": {
-                "backendTesting": true
+                "backendTesting": true,
+                "githubActions": true
             }
         }
     },
