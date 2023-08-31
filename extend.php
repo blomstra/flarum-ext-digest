@@ -42,18 +42,22 @@ return [
     (new Extend\ApiSerializer(CurrentUserSerializer::class))
         ->attribute('digestFrequency', function ($serializer, User $user) {
             return $user->digest_frequency;
+        })
+        ->attribute('digestHour', function ($serializer, User $user) {
+            return $user->digest_hour;
         }),
+
+    (new Extend\Model(User::class))
+        ->cast('last_digest_sent_at', 'datetime')
+        ->cast('digest_hour', 'integer'),
 
     (new Extend\Notification())
         ->driver('email', Notification\EmailDigestNotificationDriver::class),
 
     (new Extend\Console())
         ->command(Console\SendDigestCommand::class)
-        ->schedule('digest:send daily', function (Event $event) {
-            $event->daily();
-        })
-        ->schedule('digest:send weekly', function (Event $event) {
-            $event->weekly();
+        ->schedule('digest:send', function (Event $event) {
+            $event->hourly();
         }),
 
     (new Extend\ServiceProvider())

@@ -14,8 +14,10 @@
         "flarum/subscriptions": "*",
         "flarum/suspend": "*",
         "fof/byobu": "*",
+        "flarum/likes": "*",
         "fof/follow-tags": "*",
-        "fof/subscribed": "*"
+        "fof/subscribed": "*",
+        "flarum/testing": "^1.0.0"
     },
     "support": {
         "email": "helpdesk@blomstra.net",
@@ -44,6 +46,32 @@
                 "backgroundColor": "#EBF1FD",
                 "color": "#3a98d0"
             }
+        },
+        "flarum-cli": {
+            "modules": {
+                "backendTesting": true,
+                "githubActions": true
+            }
         }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Blomstra\\Digest\\Tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "test": [
+            "@test:unit",
+            "@test:integration"
+        ],
+        "test:unit": "phpunit -c tests/phpunit.unit.xml",
+        "test:integration": "phpunit -c tests/phpunit.integration.xml",
+        "test:setup": "@php tests/integration/setup.php"
+    },
+    "scripts-descriptions": {
+        "test": "Runs all tests.",
+        "test:unit": "Runs all unit tests.",
+        "test:integration": "Runs all integration tests.",
+        "test:setup": "Sets up a database for use with integration tests. Execute this only once."
     }
 }

@@ -32,40 +32,56 @@ class SaveUser
     {
         $attributes = (array) Arr::get($event->data, 'attributes');
 
-        if (!Arr::exists($attributes, 'digestFrequency')) {
-            return;
+        if ($frequency = Arr::get($attributes, 'digestFrequency')) {
+            // If the value didn't change, we don't want to trigger any logic or event below a second time
+            if ($frequency === $event->user->digest_frequency) {
+                return;
+            }
+
+            // Very simple access control, for now you can only edit yourself, just like regular JSON user settings
+            if ($event->user->id !== $event->actor->id) {
+                throw new PermissionDeniedException();
+            }
+
+            $this->validation->make([
+                'frequency' => $frequency,
+            ], [
+                'frequency' => 'nullable|in:daily,weekly',
+            ])->validate();
+
+            $event->user->digest_frequency = $frequency;
+
+            // If the user disables digests, send all pending notifications right away
+            if (is_null($frequency)) {
+                $event->user->afterSave(function (User $user) {
+                    /**
+                     * @var Queue $queue
+                     */
+                    $queue = resolve(Queue::class);
+
+                    $queue->push(new SendDigestToUser($user));
+                });
+            }
         }
 
-        $frequency = Arr::get($attributes, 'digestFrequency');
+        if ($hour = Arr::get($attributes, 'digestHour')) {
+            // If the value didn't change, we don't want to trigger any logic or event below a second time
+            if ($hour === $event->user->digest_hour) {
+                return;
+            }
 
-        // If the value didn't change, we don't want to trigger any logic or event below a second time
-        if ($frequency === $event->user->digest_frequency) {
-            return;
-        }
+            // Very simple access control, for now you can only edit yourself, just like regular JSON user settings
+            if ($event->user->id !== $event->actor->id) {
+                throw new PermissionDeniedException();
+            }
 
-        // Very simple access control, for now you can only edit yourself, just like regular JSON user settings
-        if ($event->user->id !== $event->actor->id) {
-            throw new PermissionDeniedException();
-        }
+            $this->validation->make([
+                'hour' => $hour,
+            ], [
+                'hour' => 'nullable|integer|min:0|max:23',
+            ])->validate();
 
-        $this->validation->make([
-            'frequency' => $frequency,
-        ], [
-            'frequency' => 'nullable|in:daily,weekly',
-        ])->validate();
-
-        $event->user->digest_frequency = $frequency;
-
-        // If the user disables digests, send all pending notifications right away
-        if (is_null($frequency)) {
-            $event->user->afterSave(function (User $user) {
-                /**
-                 * @var Queue $queue
-                 */
-                $queue = resolve(Queue::class);
-
-                $queue->push(new SendDigestToUser($user));
-            });
+            $event->user->digest_hour = $hour;
         }
     }
 }

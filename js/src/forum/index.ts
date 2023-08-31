@@ -16,8 +16,8 @@ app.initializers.add('blomstra/digest', () => {
               daily: app.translator.trans('blomstra-digest.forum.settings.frequencyOptions.daily'),
               weekly: app.translator.trans('blomstra-digest.forum.settings.frequencyOptions.weekly'),
             },
-            value: this.user.attribute('digestFrequency') || 'immediate',
-            onchange: (value) => {
+            value: this.user!.attribute('digestFrequency') || 'immediate',
+            onchange: (value: null | string) => {
               if (value === 'immediate') {
                 value = null;
               }
@@ -41,7 +41,7 @@ app.initializers.add('blomstra/digest', () => {
                 };
               }
 
-              this.user.save(attributes).then(() => {
+              this.user!.save(attributes).then(() => {
                 this.digestFrequencyLoading = false;
                 m.redraw();
               });
@@ -60,6 +60,38 @@ app.initializers.add('blomstra/digest', () => {
     ) {
       // Show visually that flarum-subscriptions.notify_for_all_posts cannot be disabled when digest is scheduled
       items.get('notifyForAllPosts').attrs.disabled = true;
+    }
+
+    console.log(this.user!.attribute('digestFrequency'));
+
+    if (this.user!.attribute('digestFrequency') !== null) {
+      items.add(
+        'digestHour',
+        m('.Form-group', [
+          m('label', app.translator.trans('blomstra-digest.forum.settings.hour')),
+          Select.component({
+            // hours with UTC timezone
+            options: Array.from(Array(24).keys()).reduce((options, hour) => {
+              options[hour] = hour.toString().padStart(2, '0') + ':00' + ' UTC';
+              return options;
+            }, {} as any),
+            value: this.user!.attribute('digestHour') || '0',
+            onchange: (value: null | string) => {
+              this.digestHourLoading = true;
+
+              const attributes: any = {
+                digestHour: value,
+              };
+
+              this.user!.save(attributes).then(() => {
+                this.digestHourLoading = false;
+                m.redraw();
+              });
+            },
+            disabled: this.digestHourLoading,
+          }),
+        ])
+      );
     }
   });
 });
