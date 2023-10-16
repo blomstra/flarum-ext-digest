@@ -9,10 +9,16 @@
         </p>
 
         <p>
-            {{ $translator->trans('blomstra-digest.email.digest.summary', [
-                '{discussionCount}' => count($discussions),
-                '{notificationCount}' => $notificationCount,
-            ]) }}
+            @if(count($discussions))
+                {{ $translator->trans('blomstra-digest.email.digest.summary', [
+                    '{discussionCount}' => count($discussions),
+                    '{notificationCount}' => $notificationCount,
+                ]) }}
+            @else
+                {{ $translator->trans('blomstra-digest.email.digest.summary_without_discussions', [
+                    '{notificationCount}' => $notificationCount,
+                ]) }}
+            @endif
         </p>
     </div>
 

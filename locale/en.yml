@@ -16,6 +16,7 @@ blomstra-digest:
       subject: Your {forumTitle} notification digest
       greeting: Hey {recipient_display_name}!
       summary: You have {notificationCount} new notifications in {discussionCount} discussions.
+      summary_without_discussions: You have {notificationCount} new notifications.
       nonDiscussionGroup: Other notifications
       footer: You can change your digest frequency setting in the {forumTitle} user settings at any time.
       discussion:
