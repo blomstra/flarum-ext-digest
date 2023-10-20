@@ -32,7 +32,9 @@ class SaveUser
     {
         $attributes = (array) Arr::get($event->data, 'attributes');
 
-        if ($frequency = Arr::get($attributes, 'digestFrequency')) {
+        if (Arr::has($attributes, 'digestFrequency')) {
+            $frequency = Arr::get($attributes, 'digestFrequency');
+
             // If the value didn't change, we don't want to trigger any logic or event below a second time
             if ($frequency === $event->user->digest_frequency) {
                 return;
