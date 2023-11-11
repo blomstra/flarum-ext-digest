@@ -66,7 +66,9 @@ class SaveUser
             }
         }
 
-        if ($hour = Arr::get($attributes, 'digestHour')) {
+        if (Arr::has($attributes, 'digestHour')) {
+            $hour = Arr::get($attributes, 'digestHour');
+
             // Very simple access control, for now you can only edit yourself, just like regular JSON user settings
             if ($event->user->id !== $event->actor->id) {
                 throw new PermissionDeniedException();
