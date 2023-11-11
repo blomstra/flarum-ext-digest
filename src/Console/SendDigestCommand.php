@@ -64,8 +64,10 @@ class SendDigestCommand extends Command
                 // We'll turn it on here to make it apply starting with the next digest
                 if ($extensionManager->isEnabled('flarum-subscriptions') && !$user->getPreference('flarum-subscriptions.notify_for_all_posts')) {
                     $user->setPreference('flarum-subscriptions.notify_for_all_posts', true);
-                    $user->save();
                 }
+
+                $user->last_digest_sent_at = Carbon::now();
+                $user->save();
 
                 $this->output->progressAdvance();
             });
