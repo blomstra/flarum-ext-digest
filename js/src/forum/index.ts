@@ -62,8 +62,6 @@ app.initializers.add('blomstra/digest', () => {
       items.get('notifyForAllPosts').attrs.disabled = true;
     }
 
-    console.log(this.user!.attribute('digestFrequency'));
-
     if (this.user!.attribute('digestFrequency') !== null) {
       items.add(
         'digestHour',
