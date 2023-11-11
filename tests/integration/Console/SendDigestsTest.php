@@ -110,7 +110,7 @@ class SendDigestsTest extends TestCase
 
         User::query()
             ->whereIn('id', [3, 4])
-            ->update(['digest_frequency' => 'daily', 'digest_hour' => 0, 'last_digest_sent_at' => $now]);
+            ->update(['digest_frequency' => 'daily', 'last_digest_sent_at' => $now]);
 
         $queuedBlueprints = $this->database()->table('digest_queued_blueprints')->count();
         $this->assertEquals(0, $queuedBlueprints);
@@ -306,7 +306,7 @@ class SendDigestsTest extends TestCase
 
         User::query()
             ->whereIn('id', [3, 4])
-            ->update(['digest_frequency' => 'daily', 'digest_hour' => 0, 'last_digest_sent_at' => $now]);
+            ->update(['digest_frequency' => 'daily', 'last_digest_sent_at' => $now]);
 
         $queuedBlueprints = $this->database()->table('digest_queued_blueprints')->count();
         $this->assertEquals(0, $queuedBlueprints);
