@@ -40,6 +40,7 @@ class SendDigestCommand extends Command
                     ->where(function (Builder $query) {
                         $query
                             ->where('digest_frequency', 'daily')
+                            ->whereNotNull('digest_hour')
                             ->where('last_digest_sent_at', '<=', Carbon::now('utc')->subDay());
                     })
                     ->orWhere(function (Builder $query) {

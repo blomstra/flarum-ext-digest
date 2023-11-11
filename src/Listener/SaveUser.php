@@ -67,11 +67,6 @@ class SaveUser
         }
 
         if ($hour = Arr::get($attributes, 'digestHour')) {
-            // If the value didn't change, we don't want to trigger any logic or event below a second time
-            if ($hour === $event->user->digest_hour) {
-                return;
-            }
-
             // Very simple access control, for now you can only edit yourself, just like regular JSON user settings
             if ($event->user->id !== $event->actor->id) {
                 throw new PermissionDeniedException();
