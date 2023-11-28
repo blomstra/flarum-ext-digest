@@ -12,5 +12,5 @@
 use Flarum\Database\Migration;
 
 return Migration::addColumns('users', [
-    'digest_hour' => ['integer', 'nullable' => true],
+    'digest_hour' => ['integer', 'nullable' => true, 'default' => 0],
 ]);
