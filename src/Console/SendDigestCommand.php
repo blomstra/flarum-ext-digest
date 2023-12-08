@@ -31,7 +31,7 @@ class SendDigestCommand extends Command
         User::query()
             ->whereNull('last_digest_sent_at')
             ->whereNotNull('digest_frequency')
-            ->update(['last_digest_sent_at' => Carbon::now()]);
+            ->update(['last_digest_sent_at' => Carbon::now()->setMinutes(0)->setSeconds(0)]);
 
         $query = User::query()
             ->whereNotNull('digest_frequency')
@@ -40,12 +40,12 @@ class SendDigestCommand extends Command
                     ->where(function (Builder $query) {
                         $query
                             ->where('digest_frequency', 'daily')
-                            ->where('last_digest_sent_at', '<=', Carbon::now('utc')->subDay());
+                            ->where('last_digest_sent_at', '<=', Carbon::now('utc')->subDay()->addMinutes(10));
                     })
                     ->orWhere(function (Builder $query) {
                         $query
                             ->where('digest_frequency', 'weekly')
-                            ->where('last_digest_sent_at', '<=', Carbon::now('utc')->subWeek());
+                            ->where('last_digest_sent_at', '<=', Carbon::now('utc')->subWeek()->addMinutes(10));
                     });
             })
             ->whereRaw('COALESCE(`digest_hour`, 0) = ?', [Carbon::now('utc')->hour]);
@@ -66,7 +66,7 @@ class SendDigestCommand extends Command
                     $user->setPreference('flarum-subscriptions.notify_for_all_posts', true);
                 }
 
-                $user->last_digest_sent_at = Carbon::now();
+                $user->last_digest_sent_at = Carbon::now()->setMinutes(0)->setSeconds(0);
                 $user->save();
 
                 $this->output->progressAdvance();
